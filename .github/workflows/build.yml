@@ -10,20 +10,32 @@ jobs:
   build-macos:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: install dependencies
-      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm libsodium miniupnpc expat libunwind-headers protobuf qt5 pkg-config
+      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm libsodium miniupnpc expat libunwind-headers protobuf qt@5 pkg-config icu4c
     - name: build
-      run: DEV_MODE=ON make release -j3
+      run: |
+        export DEV_MODE=ON 
+        export LDFLAGS="-L$(brew --prefix openssl)/lib"
+        export CPPFLAGS="-I$(brew --prefix openssl)/include"
+        make release -j3
     - name: test qml
       run: build/release/bin/salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui --test-qml
+    #- name: build dmg
+    #  run: |
+    #    hdiutil create -format UDZO -srcfolder build/release/bin/salvium-wallet-gui.app build/release/bin/salvium-wallet-gui.dmg
+    - name: Upload app
+      uses: actions/upload-artifact@v4
+      with:
+        name: salvium-wallet-gui-macos
+        path: build/release/bin/salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui
 
   build-ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: remove bundled boost
@@ -43,14 +55,18 @@ jobs:
       run: DEV_MODE=ON make release -j3
     - name: test qml
       run: xvfb-run -a build/release/bin/salvium-wallet-gui --test-qml
-
+    - name: Upload app
+      uses: actions/upload-artifact@v4
+      with:
+        name: salvium-wallet-gui-linux
+        path: build/release/bin/salvium-wallet-gui
   build-windows:
     runs-on: windows-latest
     defaults:
       run:
         shell: msys2 {0}
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - uses: eine/setup-msys2@v2
@@ -58,23 +74,29 @@ jobs:
         update: true
         install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-pcre mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-unbound git mingw-w64-x86_64-qt5 mingw-w64-x86_64-libgcrypt
     - name: build
-      run: DEV_MODE=ON make release-win64 -j2
+      run: |
+        echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+        DEV_MODE=ON make release-win64 -j2
     - name: deploy
       run: make deploy
       working-directory: build/release
     - name: test qml
       run: build/release/bin/salvium-wallet-gui --test-qml
-
+    - name: Upload app
+      uses: actions/upload-artifact@v4
+      with:
+        name: salvium-wallet-gui-linux
+        path: build/release/bin/salvium-wallet-gui
   macos-bundle:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: install dependencies
-      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm miniupnpc expat libunwind-headers protobuf pkg-config python3 p7zip aria2
+      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm miniupnpc expat libunwind-headers protobuf pkg-config python3 p7zip aria2 icu4c
     - name: install dependencies
-      run: pip3 install defusedxml
+      run: pip3 install defusedxml --break-system-packages
     - name: download qt
       run: python3 salvium-gui/.github/qt_helper.py mac_x64 desktop 5.15.2 clang_64 c384008156fe63cc183bade0316828c598ff3e5074397c0c9ccc588d6cdc5aca
       working-directory: ../
@@ -91,7 +113,7 @@ jobs:
     - name: create .tar
       run: tar -cf salvium-wallet-gui.tar salvium-wallet-gui.app
       working-directory: build/bin
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ github.job }}
         path: build/bin/salvium-wallet-gui.tar
@@ -99,7 +121,7 @@ jobs:
   docker-linux-static:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - uses: satackey/action-docker-layer-caching@v0.0.11
@@ -121,7 +143,7 @@ jobs:
       run: shasum -a256 /home/runner/work/salvium-gui/salvium-gui/build/release/bin/salvium-wallet-gui
     - name: test qml
       run: xvfb-run -a /home/runner/work/salvium-gui/salvium-gui/build/release/bin/salvium-wallet-gui --test-qml
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ github.job }}
         path: |
@@ -131,7 +153,7 @@ jobs:
   docker-windows-static:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - uses: satackey/action-docker-layer-caching@v0.0.11
@@ -149,7 +171,7 @@ jobs:
       run: docker run --rm -v /home/runner/work/salvium-gui/salvium-gui:/salvium-gui -w /salvium-gui salvium:build-env-windows sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j3'
     - name: sha256sum
       run: shasum -a256 /home/runner/work/salvium-gui/salvium-gui/build/x86_64-w64-mingw32/release/bin/salvium-wallet-gui.exe
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ github.job }}
         path: |
@@ -159,7 +181,7 @@ jobs:
   docker-android:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - uses: satackey/action-docker-layer-caching@v0.0.11
@@ -177,7 +199,7 @@ jobs:
       run: docker run --rm -v /home/runner/work/salvium-gui/salvium-gui:/salvium-gui -e THREADS=3 salvium:build-env-android
     - name: Remove obsolete docker layers
       run: docker images -a | grep none | awk '{ print $3; }' | xargs docker rmi || true
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ github.job }}
         path: /home/runner/work/salvium-gui/salvium-gui/build/Android/release/android-build/salvium-gui.apk
@@ -185,7 +207,7 @@ jobs:
   source-archive:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: archive
@@ -195,7 +217,7 @@ jobs:
         export OUTPUT="$VERSION.tar"
         echo "OUTPUT=$OUTPUT" >> $GITHUB_ENV
         /home/runner/.local/bin/git-archive-all --prefix "$VERSION/" --force-submodules "$OUTPUT"
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ env.OUTPUT }}
         path: /home/runner/work/salvium-gui/salvium-gui/${{ env.OUTPUT }}

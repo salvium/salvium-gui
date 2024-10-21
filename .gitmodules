@@ -3,4 +3,4 @@
 	url = https://github.com/dlbeer/quirc/
 [submodule "salvium"]
 	path = salvium
-	url = https://github.com/somerandomcryptoguy/salvium
+	url = https://github.com/SomeRandomDevopsGuy/salvium
