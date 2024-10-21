@@ -16,7 +16,11 @@ jobs:
     - name: install dependencies
       run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm libsodium miniupnpc expat libunwind-headers protobuf qt@5 pkg-config icu4c
     - name: build
-      run: DEV_MODE=ON make release -j3
+      run: |
+        export DEV_MODE=ON 
+        export LDFLAGS="-L$(brew --prefix openssl)/lib"
+        export CPPFLAGS="-I$(brew --prefix openssl)/include"
+        make release -j3
     - name: test qml
       run: build/release/bin/salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui --test-qml
 
