@@ -16,7 +16,7 @@ jobs:
     - name: install dependencies
       run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm libsodium miniupnpc expat libunwind-headers protobuf qt@5 pkg-config icu4c
     - name: build
-      run: DEV_MODE=OFF make release -j3
+      run: DEV_MODE=ON make release -j3
     - name: test qml
       run: build/release/bin/salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui --test-qml
 
@@ -40,7 +40,7 @@ jobs:
     - name: install salvium gui dependencies
       run: sudo apt -y install qtbase5-dev qtdeclarative5-dev qml-module-qtqml-models2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-dialogs qml-module-qtquick-xmllistmodel qml-module-qt-labs-settings qml-module-qt-labs-platform qml-module-qt-labs-folderlistmodel qttools5-dev-tools qml-module-qtquick-templates2 libqt5svg5-dev libgcrypt20-dev xvfb
     - name: build
-      run: DEV_MODE=OFF make release -j3
+      run: DEV_MODE=ON make release -j3
     - name: test qml
       run: xvfb-run -a build/release/bin/salvium-wallet-gui --test-qml
 
@@ -58,7 +58,7 @@ jobs:
         update: true
         install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-pcre mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-unbound git mingw-w64-x86_64-qt5 mingw-w64-x86_64-libgcrypt
     - name: build
-      run: DEV_MODE=OFF make release-win64 -j2
+      run: DEV_MODE=ON make release-win64 -j2
     - name: deploy
       run: make deploy
       working-directory: build/release
