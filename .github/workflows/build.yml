@@ -72,7 +72,7 @@ jobs:
       with:
         submodules: recursive
     - name: install dependencies
-      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm miniupnpc expat libunwind-headers protobuf pkg-config python3 p7zip aria2
+      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install boost hidapi openssl zmq libpgm miniupnpc expat libunwind-headers protobuf pkg-config python3 p7zip aria2 icu4c
     - name: install dependencies
       run: pip3 install defusedxml --break-system-packages
     - name: download qt
