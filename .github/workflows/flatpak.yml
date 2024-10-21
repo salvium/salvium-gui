@@ -43,7 +43,7 @@ jobs:
       run: tar -cvf flatpak-builder.tar .flatpak-builder
 
     - name: Save flatpak-builder
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: flatpak-builder-${{ matrix.arch }}
         path: flatpak-builder.tar
@@ -93,7 +93,7 @@ jobs:
       run: tar -cvf flatpak-builder.tar .flatpak-builder
 
     - name: Save flatpak-builder
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: flatpak-builder-${{ matrix.arch }}
         path: flatpak-builder.tar

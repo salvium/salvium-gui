@@ -27,7 +27,7 @@ jobs:
     #  run: |
     #    hdiutil create -format UDZO -srcfolder build/release/bin/salvium-wallet-gui.app build/release/bin/salvium-wallet-gui.dmg
     - name: Upload app
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: salvium-wallet-gui-macos
         path: build/release/bin/salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui
@@ -56,7 +56,7 @@ jobs:
     - name: test qml
       run: xvfb-run -a build/release/bin/salvium-wallet-gui --test-qml
     - name: Upload app
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: salvium-wallet-gui-linux
         path: build/release/bin/salvium-wallet-gui
@@ -81,7 +81,7 @@ jobs:
     - name: test qml
       run: build/release/bin/salvium-wallet-gui --test-qml
     - name: Upload app
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: salvium-wallet-gui-linux
         path: build/release/bin/salvium-wallet-gui
