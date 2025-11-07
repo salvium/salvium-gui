@@ -1,4 +1,4 @@
-name: Build macOS (Apple Silicon) Release
+name: Build macOS release with qt from src
 
 on:
   workflow_dispatch:
@@ -19,8 +19,18 @@ jobs:
     runs-on: macos-latest
     outputs:
       daemon_path: ${{ steps.upload_daemon_artifact.outputs.artifact_path }}/salviumd
+    
+    # Environment variables for freeing disk and the Qt source build
+    env:
+      FREE_DISKSPACE: |
+        sudo rm -rf /usr/local/.ghcup /usr/share/dotnet /usr/share/swift /usr/share/miniconda
+      QT_TAG: v5.15.17-lts-lgpl
+      QT_PREFIX: ${{ github.workspace }}/qt-install
 
     steps:
+      - name: Free up disk space
+        run: ${{ env.FREE_DISKSPACE }}
+
       - name: Check out code (with submodules)
         uses: actions/checkout@v4
         with:
@@ -94,18 +104,54 @@ jobs:
 
       - name: Install GUI build dependencies (Homebrew)
         run: |
-          brew install qt@5 boost@1.85 openssl@1.1 libsodium pkg-config cmake zeromq \
-                       hidapi libpgm miniupnpc expat libunwind-headers protobuf ccache unbound zmq libpgm libgcrypt
+          # Install all dependencies *except* qt@5
+          brew install boost@1.85 openssl@1.1 libsodium pkg-config cmake zeromq \
+                       hidapi libpgm miniupnpc expat libunwind-headers protobuf ccache unbound libgcrypt
+
+      - name: Clone qt repo
+        run: git clone -b "${{ env.QT_TAG }}" --recursive --depth 1 --shallow-submodules https://github.com/qt/qt5
+
+      - name: Build qt from source
+        run: |
+          cd qt5
+          mkdir build && cd build
+          # Configure Qt, skipping modules to speed up build (flags from Monero example)
+          ../configure -prefix "${{ env.QT_PREFIX }}" -opensource -confirm-license -release -nomake examples -nomake tests -no-rpath \
+                       -skip qtwebengine -skip qt3d -skip qtandroidextras -skip qtcanvas3d -skip qtcharts -skip qtconnectivity \
+                       -skip qtdatavis3d -skip qtdoc -skip qtgamepad -skip qtlocation -skip qtnetworkauth -skip qtpurchasing \
+                       -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtspeech \
+                       -skip qttools -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebsockets \
+                       -skip qtwebview -skip qtwinextras -skip qtx11extras -skip gamepad -skip serialbus -skip location -skip webengine
+          
+          echo "--- Making Qt Base ---"
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+          
+          # Build lrelease (required by GUI)
+          echo "--- Building lrelease ---"
+          cd ../qttools/src/linguist/lrelease
+          ../../../../build/qtbase/bin/qmake # Use qmake from build dir
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+          
+          # Build macdeployqt (required by GUI)
+          echo "--- Building macdeployqt ---"
+          cd ../../../../qttools/src/macdeployqt/macdeployqt/
+          ../../../../build/qtbase/bin/qmake # Use qmake from build dir
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
 
       - name: Set up GUI build environment paths
         run: |
-          echo "CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5:/opt/homebrew/opt/openssl@1.1:/opt/homebrew/opt/boost@1.85:/opt/homebrew/opt/libsodium:/opt/homebrew/opt/miniupnpc:/opt/homebrew/opt/protobuf" >> $GITHUB_ENV
-          echo "/opt/homebrew/opt/qt@5/bin" >> $GITHUB_PATH
+          # Point to the newly built Qt (from QT_PREFIX) and other brew dependencies
+          echo "CMAKE_PREFIX_PATH=${{ env.QT_PREFIX }}:/opt/homebrew/opt/openssl@1.1:/opt/homebrew/opt/boost@1.85:/opt/homebrew/opt/libsodium:/opt/homebrew/opt/miniupnpc:/opt/homebrew/opt/protobuf" >> $GITHUB_ENV
+          echo "${{ env.QT_PREFIX }}/bin" >> $GITHUB_PATH
 
       - name: Configure CMake (GUI)
         run: |
           mkdir -p build/release
           cd build/release
+          # This command remains unchanged, as it correctly uses the CMAKE_PREFIX_PATH from the environment
           /opt/homebrew/bin/cmake -D CMAKE_BUILD_TYPE=Release \
                 -D DEV_MODE=OFF \
                 -D MANUAL_SUBMODULES=OFF \
@@ -206,3 +252,4 @@ jobs:
           draft: false
           prerelease: false
           files: ./release-assets/salvium-gui-unsigned.dmg # Attach only the DMG
+
