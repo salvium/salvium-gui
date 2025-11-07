@@ -12,7 +12,25 @@ if(APPLE OR (WIN32 AND NOT STATIC))
         )
 
         # workaround for a Qt bug that requires manually adding libqsvg.dylib to bundle
-        find_file(_qt_svg_dylib "libqsvg.dylib" PATHS "${CMAKE_PREFIX_PATH}/plugins/imageformats" NO_DEFAULT_PATH)
+        # Try to locate libqsvg.dylib in any known Qt plugin directory
+        set(_qt_plugin_search_paths)
+        if(CMAKE_PREFIX_PATH)
+            foreach(_prefix IN LISTS CMAKE_PREFIX_PATH)
+                list(APPEND _qt_plugin_search_paths "${_prefix}/plugins/imageformats")
+            endforeach()
+        endif()
+        if(DEFINED QT_INSTALL_PREFIX)
+            list(APPEND _qt_plugin_search_paths "${QT_INSTALL_PREFIX}/plugins/imageformats")
+        endif()
+        if(DEFINED Qt5Svg_DIR)
+            list(APPEND _qt_plugin_search_paths "${Qt5Svg_DIR}/../../../plugins/imageformats")
+        endif()
+
+        list(REMOVE_DUPLICATES _qt_plugin_search_paths)
+
+        find_file(_qt_svg_dylib "libqsvg.dylib"
+                  PATHS ${_qt_plugin_search_paths}
+                  NO_DEFAULT_PATH)    
         if(_qt_svg_dylib)
             add_custom_command(TARGET deploy
                                POST_BUILD
