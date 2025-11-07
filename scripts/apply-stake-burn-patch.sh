@@ -33,4 +33,3 @@ apply_patch() {
 }
 
 apply_patch "${ROOT_DIR}/salvium"
-apply_patch "${ROOT_DIR}/salvium-gui/salvium"
