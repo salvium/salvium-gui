@@ -1,4 +1,4 @@
-name: Build macOS (Apple Silicon) Release
+name: Build macOS release with qt from src
 
 on:
   workflow_dispatch:
