@@ -31,25 +31,28 @@ if(APPLE OR (WIN32 AND NOT STATIC))
         find_file(_qt_svg_dylib "libqsvg.dylib"
                   PATHS ${_qt_plugin_search_paths}
                   NO_DEFAULT_PATH)
-
+        
         if(_qt_svg_dylib)
-            add_custom_command(TARGET deploy
-                POST_BUILD
-
+            add_custom_command(TARGET deploy POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy "${_qt_svg_dylib}" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/"
+                COMMENT "Copying libqsvg.dylib..."
+            )
 
-                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${CMAKE_PREFIX_PATH}/lib/QtGui.framework/Versions/5/QtGui" "@executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
+            get_filename_component(_qt_plugin_dir "${_qt_svg_dylib}" DIRECTORY)
+            get_filename_component(_qt_base_path "${_qt_plugin_dir}" DIRECTORY)
+            get_filename_component(_qt_base_path "${_qt_base_path}" DIRECTORY)
 
-                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${CMAKE_PREFIX_PATH}/lib/QtWidgets.framework/Versions/5/QtWidgets" "@executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
+            set(_qt_lib_dir "${_qt_base_path}/lib")
 
-                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${CMAKE_PREFIX_PATH}/lib/QtSvg.framework/Versions/5/QtSvg" "@executable_path/../Frameworks/QtSvg.framework/Versions/5/QtSvg" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
-
-                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${CMAKE_PREFIX_PATH}/lib/QtCore.framework/Versions/5/QtCore" "@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
-
-                COMMENT "Copying libqsvg.dylib AND fixing its dependency paths"
+            add_custom_command(TARGET deploy POST_BUILD
+                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${_qt_lib_dir}/QtGui.framework/Versions/5/QtGui" "@executable_path/../Frameworks/QtGui.framework/Versions/5/QtGui" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
+                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${_qt_lib_dir}/QtWidgets.framework/Versions/5/QtWidgets" "@executable_path/../Frameworks/QtWidgets.framework/Versions/5/QtWidgets" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
+                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${_qt_lib_dir}/QtSvg.framework/Versions/5/QtSvg" "@executable_path/../Frameworks/QtSvg.framework/Versions/5/QtSvg" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
+                COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change "${_qt_lib_dir}/QtCore.framework/Versions/5/QtCore" "@executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore" "$<TARGET_FILE_DIR:salvium-wallet-gui>/../PlugIns/imageformats/libqsvg.dylib"
+                COMMENT "Fixing libqsvg.dylib dependency paths (dynamically)..."
             )
         endif()
-
+        
         # libbost_filesyste-mt.dylib has a dependency on libboost_atomic-mt.dylib, maydeployqt does not copy it by itself
         find_package(Boost COMPONENTS atomic)
         get_target_property(BOOST_ATOMIC_LIB_PATH Boost::atomic LOCATION)
