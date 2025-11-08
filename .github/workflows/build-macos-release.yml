@@ -252,4 +252,3 @@ jobs:
           draft: false
           prerelease: false
           files: ./release-assets/salvium-gui-unsigned.dmg # Attach only the DMG
-
