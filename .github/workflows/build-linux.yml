@@ -14,6 +14,11 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Make patch script executable
+      run: chmod +x scripts/apply-stake-burn-patch.sh   
+      
+    - name: Apply stake/burn patch
+      run: scripts/apply-stake-burn-patch.sh
 
     - uses: satackey/action-docker-layer-caching@v0.0.11
       if: "!startsWith(github.ref, 'refs/tags/v')"
