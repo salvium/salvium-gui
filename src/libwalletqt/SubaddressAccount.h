@@ -45,7 +45,7 @@ public:
     Q_INVOKABLE bool getRow(int index, std::function<void (Monero::SubaddressAccountRow &)> callback) const;
     Q_INVOKABLE void addRow(const QString &label) const;
     Q_INVOKABLE void setLabel(quint32 accountIndex, const QString &label) const;
-    Q_INVOKABLE void refresh() const;
+    Q_INVOKABLE void refresh(const QString &asset_type) const;
     quint64 count() const;
 
 signals:

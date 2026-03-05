@@ -3,8 +3,8 @@ project(salvium-gui)
 
 message(STATUS "Initiating compile using CMake ${CMAKE_VERSION}")
 
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "1")
+set(VERSION_MAJOR "1")
+set(VERSION_MINOR "0")
 set(VERSION_REVISION "a")
 set(VERSION "1.${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}")
 
@@ -67,7 +67,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 get_directory_property(ARCH_WIDTH DIRECTORY "salvium" DEFINITION ARCH_WIDTH)
-
+get_directory_property(Boost_VERSION_STRING DIRECTORY "salvium" DEFINITION Boost_VERSION_STRING)
+    
 if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-DQT_NO_DEBUG)
 endif()
@@ -148,6 +149,8 @@ if(UNIX)
   endif()
 endif()
 
+set(QT_MIN_VERSION "5.12")
+
 find_package(PkgConfig REQUIRED)
 
 # TODO: drop this once we switch to Qt 5.14+
@@ -156,14 +159,13 @@ if(Qt5QmlModels_PKG_CONFIG_FOUND)
   list(APPEND QT5_LIBRARIES Qt5QmlModels)
 endif()
 
-# TODO: drop this once we switch to Qt 5.12+
 find_package(Qt5XmlPatterns QUIET)
 if(Qt5XmlPatterns_FOUND)
   list(APPEND QT5_LIBRARIES Qt5XmlPatterns)
 endif()
 
 foreach(QT5_MODULE ${QT5_LIBRARIES})
-  find_package(${QT5_MODULE} REQUIRED)
+  find_package(${QT5_MODULE} ${QT_MIN_VERSION} REQUIRED)
   include_directories(${${QT5_MODULE}_INCLUDE_DIRS})
 endforeach()
 
@@ -411,7 +413,7 @@ if (APPLE)
   add_linker_flag_if_supported(-Wl,-dead_strip LD_SECURITY_FLAGS)
   add_linker_flag_if_supported(-Wl,-dead_strip_dylibs LD_SECURITY_FLAGS)
 endif()
-if (NOT APPLE AND NOT (WIN32 AND CMAKE_C_COMPILER_ID STREQUAL "GNU"))
+if (NOT APPLE AND NOT WIN32 AND NOT MINGW)
   # Windows binaries die on startup with PIE when compiled with GCC
   add_linker_flag_if_supported(-pie LD_SECURITY_FLAGS)
 endif()

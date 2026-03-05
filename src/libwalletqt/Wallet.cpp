@@ -306,6 +306,7 @@ void Wallet::initAsync(
             emit walletCreationHeightChanged();
             qDebug() << "init async finished: " + daemonAddress;
             connected(true);
+            updateAssetTypesCache(true);
         }
         else
         {
@@ -530,6 +531,69 @@ bool Wallet::scanTransactions(const QVector<QString> &txids)
     return m_walletImpl->scanTransactions(c);
 }
 
+void Wallet::setupBackgroundSync(const Wallet::BackgroundSyncType background_sync_type, const QString &wallet_password)
+{
+    qDebug() << "Setting up background sync";
+    bool refreshEnabled = m_refreshEnabled;
+    pauseRefresh();
+
+    // run inside scheduler because of lag when stopping/starting refresh
+    m_scheduler.run([this, refreshEnabled, background_sync_type, &wallet_password] {
+        m_walletImpl->setupBackgroundSync(
+            static_cast<Monero::Wallet::BackgroundSyncType>(background_sync_type),
+            wallet_password.toStdString(),
+            Monero::optional<std::string>());
+        if (refreshEnabled)
+            startRefresh();
+        emit backgroundSyncSetup();
+    });
+}
+
+Wallet::BackgroundSyncType Wallet::getBackgroundSyncType() const
+{
+    return static_cast<BackgroundSyncType>(m_walletImpl->getBackgroundSyncType());
+}
+
+bool Wallet::isBackgroundWallet() const
+{
+    return m_walletImpl->isBackgroundWallet();
+}
+
+bool Wallet::isBackgroundSyncing() const
+{
+    return m_walletImpl->isBackgroundSyncing();
+}
+
+void Wallet::startBackgroundSync()
+{
+    qDebug() << "Starting background sync";
+    bool refreshEnabled = m_refreshEnabled;
+    pauseRefresh();
+
+    // run inside scheduler because of lag when stopping/starting refresh
+    m_scheduler.run([this, refreshEnabled] {
+        m_walletImpl->startBackgroundSync();
+        if (refreshEnabled)
+            startRefresh();
+        emit backgroundSyncStarted();
+    });
+}
+
+void Wallet::stopBackgroundSync(const QString &password)
+{
+    qDebug() << "Stopping background sync";
+    bool refreshEnabled = m_refreshEnabled;
+    pauseRefresh();
+
+    // run inside scheduler because of lag when stopping/starting refresh
+    m_scheduler.run([this, password, refreshEnabled] {
+        m_walletImpl->stopBackgroundSync(password.toStdString());
+        if (refreshEnabled)
+            startRefresh();
+        emit backgroundSyncStopped();
+    });
+}
+
 bool Wallet::refresh(bool historyAndSubaddresses /* = true */)
 {
     refreshingSet(true);
@@ -547,8 +611,10 @@ bool Wallet::refresh(bool historyAndSubaddresses /* = true */)
             m_subaddress->refresh(currentSubaddressAccount());
             m_subaddressAccount->getAll();
         }
-        if (result)
+        if (result) {
+            updateAssetTypesCache();
             emit updated();
+        }
         return result;
     }
 }
@@ -582,6 +648,31 @@ PendingTransaction *Wallet::createStakeTransaction(
     return result;
 }
 
+PendingTransaction *Wallet::createCreateTokenTransaction(
+    const QString &asset_type,
+    const QString &supply,
+    const QString &metadata,
+    const QString &name,
+    const quint32 size,
+    const QString &hash,
+    const QString &url)
+{
+    std::set<uint32_t> subaddr_indices;
+    Monero::PendingTransaction *ptImpl = m_walletImpl->createCreateTokenTransaction(
+        asset_type.toStdString(),
+        supply.toULongLong(),
+        metadata.toStdString(),
+        name.toStdString(),
+        size,
+        hash.toStdString(),
+        url.toStdString(),
+        currentSubaddressAccount(),
+        subaddr_indices);
+    PendingTransaction *result = new PendingTransaction(ptImpl, 0);
+    return result;
+}
+
+
 PendingTransaction *Wallet::createAuditTransaction(
     quint32 mixin_count,
     PendingTransaction::Priority priority
@@ -609,7 +700,28 @@ void Wallet::createStakeTransactionAsync(
         PendingTransaction *tx = createStakeTransaction(amount, mixin_count, priority);
         QVector<QString> destinationAddresses;
         // SRCG: push self subaddress into the list
-        emit transactionCreated(tx, destinationAddresses, "", mixin_count);
+        emit transactionCreated(tx, destinationAddresses, "SAL1", "", mixin_count);
+    });
+}
+
+void Wallet::createCreateTokenTransactionAsync(
+    const QString &asset_type,
+    const QString &supply,
+    const QString &metadata,
+    const QString &name,
+    const quint32 size,
+    const QString &hash,
+    const QString &url)
+{
+    std::cout << "createCreateTokenTransactionAsync called with asset_type: " << asset_type.toStdString() << ", supply: " << supply.toStdString() << ", name: " << name.toStdString() << ", metadata: " << metadata.toStdString() << std::endl;
+
+    m_scheduler.run([this, asset_type, supply, metadata, name, size, hash, url] {
+        std::cout << "Running createCreateTokenTransactionAsync task in scheduler" << std::endl;
+        PendingTransaction *tx = createCreateTokenTransaction(asset_type, supply, metadata, name, size, hash, url);
+        std::cout << "Running createCreateTokenTransactionAsync task in scheduler DONE!" << std::endl;
+        QVector<QString> destinationAddresses;
+        // check: push self subaddress into the list
+        emit transactionCreated(tx, destinationAddresses, "SAL1", "", 0 /* mixin_count fix here */ );
     });
 }
 
@@ -621,17 +733,17 @@ void Wallet::createAuditTransactionAsync(
         PendingTransaction *tx = createAuditTransaction(mixin_count, priority);
         QVector<QString> destinationAddresses;
         // SRCG: push self subaddress into the list
-        emit transactionCreated(tx, destinationAddresses, "", mixin_count);
+        emit transactionCreated(tx, destinationAddresses, "SAL", "", mixin_count);
     });
 }
 
 
-PendingTransaction *Wallet::createTransaction(
-    const QVector<QString> &destinationAddresses,
-    const QString &payment_id,
-    const QVector<QString> &destinationAmounts,
-    quint32 mixin_count,
-    PendingTransaction::Priority priority)
+PendingTransaction *Wallet::createTransaction(const QVector<QString> &destinationAddresses,
+                                              const QString &asset_type,
+                                              const QString &payment_id,
+                                              const QVector<QString> &destinationAmounts,
+                                              quint32 mixin_count,
+                                              PendingTransaction::Priority priority)
 {
     std::vector<std::string> destinations;
     for (const auto &address : destinationAddresses) {
@@ -648,7 +760,7 @@ PendingTransaction *Wallet::createTransaction(
         payment_id.toStdString(),
         amounts,
         mixin_count,
-        "SAL1",
+        asset_type.toStdString(),
         false /* is_return */,
         static_cast<Monero::PendingTransaction::Priority>(priority),
         currentSubaddressAccount(),
@@ -657,37 +769,42 @@ PendingTransaction *Wallet::createTransaction(
     return result;
 }
 
-void Wallet::createTransactionAsync(
-    const QVector<QString> &destinationAddresses,
-    const QString &payment_id,
-    const QVector<QString> &destinationAmounts,
-    quint32 mixin_count,
-    PendingTransaction::Priority priority)
+void Wallet::createTransactionAsync(const QVector<QString> &destinationAddresses,
+                                    const QString &asset_type,
+                                    const QString &payment_id,
+                                    const QVector<QString> &destinationAmounts,
+                                    quint32 mixin_count,
+                                    PendingTransaction::Priority priority)
 {
-    m_scheduler.run([this, destinationAddresses, payment_id, destinationAmounts, mixin_count, priority] {
-        PendingTransaction *tx = createTransaction(destinationAddresses, payment_id, destinationAmounts, mixin_count, priority);
-        emit transactionCreated(tx, destinationAddresses, payment_id, mixin_count);
+    m_scheduler.run([this, destinationAddresses, asset_type, payment_id, destinationAmounts, mixin_count, priority] {
+        PendingTransaction *tx = createTransaction(destinationAddresses, asset_type, payment_id, destinationAmounts, mixin_count, priority);
+        emit transactionCreated(tx, destinationAddresses, asset_type, payment_id, mixin_count);
     });
 }
 
-PendingTransaction *Wallet::createTransactionAll(const QString &dst_addr, const QString &payment_id,
-                                                 quint32 mixin_count, PendingTransaction::Priority priority)
+PendingTransaction *Wallet::createTransactionAll(const QString &dst_addr,
+                                                 const QString &asset_type,
+                                                 const QString &payment_id,
+                                                 quint32 mixin_count,
+                                                 PendingTransaction::Priority priority)
 {
     std::set<uint32_t> subaddr_indices;
-    Monero::PendingTransaction * ptImpl = m_walletImpl->createTransaction(dst_addr.toStdString(), payment_id.toStdString(), Monero::optional<uint64_t>(), mixin_count, "SAL", false /* is_return */,
+    Monero::PendingTransaction * ptImpl = m_walletImpl->createTransaction(dst_addr.toStdString(), payment_id.toStdString(), Monero::optional<uint64_t>(), mixin_count, asset_type.toStdString(), false /* is_return */,
                                                                           static_cast<Monero::PendingTransaction::Priority>(priority), currentSubaddressAccount(), subaddr_indices);
     PendingTransaction * result = new PendingTransaction(ptImpl, this);
     return result;
 }
 
-void Wallet::createTransactionAllAsync(const QString &dst_addr, const QString &payment_id,
-                               quint32 mixin_count,
-                               PendingTransaction::Priority priority)
+void Wallet::createTransactionAllAsync(const QString &dst_addr,
+                                       const QString &asset_type,
+                                       const QString &payment_id,
+                                       quint32 mixin_count,
+                                       PendingTransaction::Priority priority)
 {
-    m_scheduler.run([this, dst_addr, payment_id, mixin_count, priority] {
-        PendingTransaction *tx = createTransactionAll(dst_addr, payment_id, mixin_count, priority);
-        emit transactionCreated(tx, {dst_addr}, payment_id, mixin_count);
-    });
+  m_scheduler.run([this, dst_addr, asset_type, payment_id, mixin_count, priority] {
+    PendingTransaction *tx = createTransactionAll(dst_addr, asset_type, payment_id, mixin_count, priority);
+    emit transactionCreated(tx, {dst_addr}, asset_type, payment_id, mixin_count);
+  });
 }
 
 PendingTransaction *Wallet::createSweepUnmixableTransaction()
@@ -701,7 +818,7 @@ void Wallet::createSweepUnmixableTransactionAsync()
 {
     m_scheduler.run([this] {
         PendingTransaction *tx = createSweepUnmixableTransaction();
-        emit transactionCreated(tx, {""}, "", 0);
+        emit transactionCreated(tx, {""}, "", "", 0);
     });
 }
 
@@ -1162,6 +1279,49 @@ YieldInfo * Wallet::getYieldInfo()
 {
   YieldInfo * yi = new YieldInfo(m_walletImpl->getYieldInfo(), this);
   return yi;
+}
+
+QStringList Wallet::getAssetTypes()
+{
+    // Compatibility method for existing QML.
+    // Prefer binding to the `assetTypes` Q_PROPERTY.
+    if (m_assetTypes.isEmpty())
+        updateAssetTypesCache(true);
+    return m_assetTypes;
+}
+
+QStringList Wallet::assetTypes() const
+{
+    return m_assetTypes;
+}
+
+void Wallet::updateAssetTypesCache(bool force)
+{
+    if (!m_walletImpl)
+        return;
+
+    std::vector<std::string> v = m_walletImpl->getAssetTypes();
+
+    // Deterministic ordering
+    std::sort(v.begin(), v.end());
+
+    // Optional: force SAL1 first
+    auto it = std::find(v.begin(), v.end(), "SAL1");
+    if (it != v.end()) {
+        std::string sal1 = *it;
+        v.erase(it);
+        v.insert(v.begin(), std::move(sal1));
+    }
+
+    QStringList next;
+    next.reserve(int(v.size()));
+    for (const auto& s : v)
+        next.append(QString::fromStdString(s));
+
+    if (force || next != m_assetTypes) {
+        m_assetTypes = std::move(next);
+        emit assetTypesChanged();
+    }
 }
 
 Wallet::Wallet(Monero::Wallet *w, QObject *parent)

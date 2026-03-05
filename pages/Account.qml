@@ -86,7 +86,7 @@ Rectangle {
                 Layout.fillWidth: true
                 fontSize: 24
                 textFormat: Text.RichText
-                text: qsTr("Balance All (SAL1) ") + translationManager.emptyString
+                text: qsTr("Balance (SAL1) ") + translationManager.emptyString
             }
 
             RowLayout {
@@ -164,7 +164,7 @@ Rectangle {
                 Layout.topMargin: 22
                 fontSize: 24
                 textFormat: Text.RichText
-                text: qsTr("Balance All (SAL) ") + translationManager.emptyString
+                text: qsTr("Balance") + " (" + appWindow.persistentSettings.assetType + ")" + translationManager.emptyString
             }
 
             RowLayout {
@@ -373,18 +373,6 @@ Rectangle {
                                     }
 
                                     MoneroComponents.Label {
-                                        id: addressLabel
-                                        color: MoneroComponents.Style.defaultFontColor
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        anchors.left: balanceNumberLabel.left
-                                        anchors.leftMargin: -addressLabel.width - 30
-                                        fontSize: 16
-                                        fontFamily: MoneroComponents.Style.fontMonoRegular.name
-                                        text: TxUtils.addressTruncatePretty(address, mainLayout.width < 740 ? 1 : (mainLayout.width < 900 ? 2 : 3))
-                                        themeTransition: false
-                                    }
-
-                                    MoneroComponents.Label {
                                         id: balanceNumberLabel
                                         color: MoneroComponents.Style.defaultFontColor
                                         Layout.alignment: Qt.AlignRight
@@ -404,6 +392,18 @@ Rectangle {
                                     Layout.preferredHeight: 30
                                     Layout.leftMargin: 26
 
+                                    MoneroComponents.Label {
+                                        id: addressLabel
+                                        color: MoneroComponents.Style.defaultFontColor
+                                        Layout.alignment: Qt.AlignLeft
+                                        Layout.leftMargin: 10
+                                        Layout.minimumWidth: 120
+                                        fontSize: 16
+                                        fontFamily: MoneroComponents.Style.fontMonoRegular.name
+                                        text: TxUtils.addressTruncatePretty(address, mainLayout.width < 400 ? 1 : (mainLayout.width < 740 ? 2 : (mainLayout.width < 900 ? 3 : 4)))
+                                        themeTransition: false
+                                    }
+
                                     // push the balance to the right
                                     Item {
                                         Layout.fillWidth: true 
@@ -417,7 +417,7 @@ Rectangle {
                                         Layout.minimumWidth: 120
                                         fontSize: 16
                                         fontFamily: MoneroComponents.Style.fontMonoRegular.name
-                                        text: balanceSAL + " SAL"
+                                        text: balanceSAL + " " + appWindow.persistentSettings.assetType
                                         elide: Text.ElideRight
                                         themeTransition: false
                                     }
@@ -503,14 +503,17 @@ Rectangle {
     function onPageCompleted() {
         console.log("account");
         if (appWindow.currentWallet !== undefined) {
-            appWindow.currentWallet.subaddressAccount.refresh();
+            var assetType = appWindow.persistentSettings.assetType;
+            appWindow.currentWallet.subaddressAccount.refresh(assetType);
             subaddressAccountListView.model = appWindow.currentWallet.subaddressAccountModel;
             appWindow.currentWallet.subaddress.refresh(appWindow.currentWallet.currentSubaddressAccount)
 
+            console.log("Token amount = " + walletManager.displayAmount(appWindow.currentWallet.balanceAll(assetType)));
+    
             balanceAllSAL1.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll("SAL1")) + " SAL1"
             unlockedBalanceAllSAL1.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll("SAL1")) + " SAL1"
-            balanceAll.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll("SAL")) + " SAL"
-            unlockedBalanceAll.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll("SAL")) + " SAL"
+            balanceAll.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll(assetType)) + " " + assetType
+            unlockedBalanceAll.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll(assetType)) + " " + assetType
         }
     }
 

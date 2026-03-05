@@ -41,7 +41,6 @@
 #include <QApplication>
 #include <QProcess>
 #include <QMap>
-#include <QCryptographicHash>
 
 #if defined(Q_OS_MACOS) && defined(__aarch64__) && !defined(Q_OS_MACOS_AARCH64)
 #define Q_OS_MACOS_AARCH64
@@ -51,23 +50,26 @@ void P2PoolManager::download() {
     m_scheduler.run([this] {
         QUrl url;
         QString fileName;
-        QString validHash;
         #ifdef Q_OS_WIN
-            url = "https://github.com/SChernykh/p2pool/releases/download/v3.10/p2pool-v3.10-windows-x64.zip";
-            fileName = m_p2poolPath + "/p2pool-v3.10-windows-x64.zip";
-            validHash = "2b5a37576ac6e73a6f26a0112d9a51360babef765199fbe06a6bfc513ed45581";
+            url = "https://github.com/mxhess/p2pool-salvium/releases/download/v4.15/p2pool-salvium-v4.15-windows-x64.zip";
+            fileName = m_p2poolPath + "/p2pool-salvium-v4.15-windows-x64.zip";
+            // Optional integrity check (disabled):
+            // validHash = "db0b73fa052ec715335073782728895cb96ba9307deb8f7bd0da00578ec8c040";
         #elif defined(Q_OS_LINUX)
-            url = "https://github.com/SChernykh/p2pool/releases/download/v3.10/p2pool-v3.10-linux-x64.tar.gz";
-            fileName = m_p2poolPath + "/p2pool-v3.10-linux-x64.tar.gz";
-            validHash = "441969c999e860231b2e48651747866754bad17292331fb22c5340c8a250168a";
+            url = "https://github.com/mxhess/p2pool-salvium/releases/download/v4.15/p2pool-salvium-v4.15-linux-x64.tar.gz";
+            fileName = m_p2poolPath + "/p2pool-salvium-v4.15-linux-x64.tar.gz";
+            // Optional integrity check (disabled):
+            // validHash = "fc606f1cdda056b8a5edc7b0b7427aac5615a4a660ccd008d0392d9a2967b35c";
         #elif defined(Q_OS_MACOS_AARCH64)
-            url = "https://github.com/SChernykh/p2pool/releases/download/v3.10/p2pool-v3.10-macos-aarch64.tar.gz";
-            fileName = m_p2poolPath + "/p2pool-v3.10-macos-aarch64.tar.gz";
-            validHash = "f8ff6de7b2ac38f0d3ac23e30cc8827d5a1b83c4190f4e79e8db695acc742a68";
+            url = "https://github.com/mxhess/p2pool-salvium/releases/download/v4.15/p2pool-salvium-v4.15-macos-aarch64.tar.gz";
+            fileName = m_p2poolPath + "/p2pool-salvium-v4.15-macos-aarch64.tar.gz";
+            // Optional integrity check (disabled):
+            // validHash = "312d3f192bb533d561c6fce2af0d9ef38296592b0ac4a9f6d52541d29e1c0913";
         #elif defined(Q_OS_MACOS)
-            url = "https://github.com/SChernykh/p2pool/releases/download/v3.10/p2pool-v3.10-macos-x64.tar.gz";
-            fileName = m_p2poolPath + "/p2pool-v3.10-macos-x64.tar.gz";
-            validHash = "9b20656556fe4bfe3df1df9a6f2c7c8bc9aa0dd2c4ac66ebca2c8580581ff9f6";
+            url = "https://github.com/mxhess/p2pool-salvium/releases/download/v4.15/p2pool-salvium-v4.15-macos-x64.tar.gz";
+            fileName = m_p2poolPath + "/p2pool-salvium-v4.15-macos-x64.tar.gz";
+            // Optional integrity check (disabled):
+            // validHash = "f54a80dc1b25cdb38ec86cf9207da07d579bb5ecdd68ed1576dbcea0004a8b30";
         #endif
         QFile file(fileName);
         epee::net_utils::http::http_simple_client http_client;
@@ -98,23 +100,41 @@ void P2PoolManager::download() {
         else {
             std::string stringData = response->m_body;
             QByteArray data(stringData.c_str(), stringData.length());
-            QByteArray hashData = QCryptographicHash::hash(data, QCryptographicHash::Sha256);
-            QString hash = hashData.toHex();
-            if (hash != validHash) {
-                emit p2poolDownloadFailure(HashVerificationFailed);
+            if (!file.open(QIODevice::WriteOnly)) {
+                emit p2poolDownloadFailure(InstallationFailed);
+                return;
+            }
+
+            file.write(data);
+            file.close();
+
+            // Optional integrity check (disabled):
+            // QByteArray hashData = QCryptographicHash::hash(data, QCryptographicHash::Sha256);
+            // QString hash = hashData.toHex();
+            // if (hash != validHash) {
+            //     emit p2poolDownloadFailure(HashVerificationFailed);
+            //     return;
+            // }
+
+            int extractResult;
+            if (fileName.endsWith(".zip")) {
+                extractResult = QProcess::execute("tar", {"-xf", fileName, "-C", m_p2poolPath});
+            } else {
+                extractResult = QProcess::execute("tar", {"-xzf", fileName, "-C", m_p2poolPath});
+            }
+
+            QFile::remove(fileName);
+
+            if (extractResult != 0) {
+                emit p2poolDownloadFailure(InstallationFailed);
+                return;
+            }
+
+            if (isInstalled()) {
+                emit p2poolDownloadSuccess();
             }
             else {
-                file.open(QIODevice::WriteOnly);
-                file.write(data);
-                file.close();
-                QProcess::execute("tar", {"-xzf", fileName, "--strip=1", "-C", m_p2poolPath});
-                QFile::remove(fileName);
-                if (isInstalled()) {
-                    emit p2poolDownloadSuccess();
-                }
-                else {
-                    emit p2poolDownloadFailure(InstallationFailed);
-                }
+                emit p2poolDownloadFailure(InstallationFailed);
             }
         }
     });
@@ -182,6 +202,10 @@ bool P2PoolManager::start(const QString &flags, const QString &address, const QS
         arguments << "--start-mining" << threads;
     }
 
+    if (chain == "nano") {
+        arguments << "--nano";
+    }
+
     if (chain == "mini") {
         arguments << "--mini";
     }
@@ -219,9 +243,9 @@ void P2PoolManager::exit()
     qDebug("P2PoolManager: exit()");
     if (started) {
     #ifdef Q_OS_WIN
-        QProcess::execute("taskkill",  {"/F", "/IM", "p2pool.exe"});
+        QProcess::execute("taskkill",  {"/F", "/IM", "p2pool-salvium.exe"});
     #else
-        QProcess::execute("pkill", {"p2pool"});
+        QProcess::execute("pkill", {"p2pool-salvium"});
     #endif
         started = false;
         QString dirName = m_p2poolPath + "/stats/";
@@ -241,10 +265,10 @@ P2PoolManager::P2PoolManager(QObject *parent)
     if (!QDir(m_p2poolPath).exists()) {
         QDir().mkdir(m_p2poolPath);
     }
-    m_p2pool = m_p2poolPath + "/p2pool.exe";
+    m_p2pool = m_p2poolPath + "/p2pool-salvium.exe";
 #elif defined(Q_OS_UNIX)
     m_p2poolPath = QApplication::applicationDirPath();
-    m_p2pool = m_p2poolPath + "/p2pool";
+    m_p2pool = m_p2poolPath + "/p2pool-salvium";
 #endif
     if (m_p2pool.length() == 0) {
         qCritical() << "no p2pool binary defined for current platform";

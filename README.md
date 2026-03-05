@@ -46,7 +46,7 @@ Do you speak a second language and would like to help translate the Salvium GUI?
 
 ## Compiling the Salvium GUI from source
 
-*Note*: Qt 5.9.7 is the minimum version required to build the GUI.
+*Note*: Qt 5.12 is the minimum version required to build the GUI.
 
 *Note*: Official GUI releases use salvium-wallet-gui from this process alongside the supporting binaries (salviumd, etc) from the [CLI deterministic builds](https://github.com/salvium/salvium/blob/main/contrib/gitian/README.md).
 
@@ -260,7 +260,7 @@ The Salvium GUI on Windows is 64 bits only; 32-bit Windows GUI builds are not of
 3. Install MSYS2 packages for Salvium dependencies; the needed 64-bit packages have `x86_64` in their names
 
     ```
-    pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-libgcrypt mingw-w64-x86_64-unbound mingw-w64-x86_64-pcre
+    pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-libgcrypt mingw-w64-x86_64-unbound mingw-w64-x86_64-pcre mingw-w64-x86_64-angleproject
     ```
 
     You find more details about those dependencies in the [Salvium documentation](https://github.com/salvium/salvium). Note that that there is no more need to compile Boost from source; like everything else, you can install it now with a MSYS2 package.

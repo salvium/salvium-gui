@@ -2544,7 +2544,7 @@ If you want this feature to be implemented, please contact the team.</source>
     </message>
     <message>
         <location filename="pages/Sign.qml" line="341"/>
-        <source>Enter the Salvium Address (example: SaLvD...)</source>
+        <source>Enter the Salvium Address (example: SC1...)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

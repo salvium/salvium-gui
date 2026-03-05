@@ -338,7 +338,7 @@ Rectangle {
                 labelText: qsTr("Address") + translationManager.emptyString
                 addressValidation: true
                 placeholderFontSize: 16
-                placeholderText: qsTr("Enter the Salvium Address (example: SaLvD...)") + translationManager.emptyString
+                placeholderText: qsTr("Enter the Salvium Address (example: SC1...)") + translationManager.emptyString
                 wrapMode: Text.WrapAnywhere
                 text: ''
             }

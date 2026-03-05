@@ -75,9 +75,9 @@ void SubaddressAccount::setLabel(quint32 accountIndex, const QString &label) con
     getAll();
 }
 
-void SubaddressAccount::refresh() const
+void SubaddressAccount::refresh(const QString &asset_type) const
 {
-    m_subaddressAccountImpl->refresh();
+    m_subaddressAccountImpl->refresh(asset_type.toStdString());
     getAll();
 }
 

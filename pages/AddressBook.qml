@@ -323,11 +323,11 @@ Rectangle {
                     .arg(qsTr("Address")) + translationManager.emptyString
                 placeholderText: {
                     if(persistentSettings.nettype == NetworkType.MAINNET){
-                        return "SaLv / salvium:.. / OpenAlias";
+                        return "SC1.. / salvium:.. / OpenAlias";
                     } else if (persistentSettings.nettype == NetworkType.STAGENET){
-                        return "SaLvS / salvium:..";
+                        return "SC1S.. / salvium:..";
                     } else if(persistentSettings.nettype == NetworkType.TESTNET){
-                        return "SaLvT.. / salvium:..";
+                        return "SC1T.. / salvium:..";
                     }
                 }
                 wrapMode: Text.WrapAnywhere

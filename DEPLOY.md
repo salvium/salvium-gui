@@ -2,7 +2,7 @@
 
 Use macOS 10.12 - 10.13 for better backwards compability.
 
-1. `HOMEBREW_OPTFLAGS="-march=core2" HOMEBREW_OPTIMIZATION_LEVEL="O0" brew install boost zmq libpgm miniupnpc libsodium expat libunwind-headers protobuf libgcrypt hidapi`
+1. `HOMEBREW_OPTFLAGS="-march=core2" HOMEBREW_OPTIMIZATION_LEVEL="O0" brew install boost zmq libpgm miniupnpc libsodium expat libunwind-headers protobuf@21 libgcrypt hidapi libusb cmake pkg-config && brew link protobuf@21`
 
 2. Get the latest LTS from here: https://www.qt.io/offline-installers and install
 
@@ -12,7 +12,7 @@ Use macOS 10.12 - 10.13 for better backwards compability.
 
 ```bash
 mkdir build && cd build
-cmake -D CMAKE_BUILD_TYPE=Release -D ARCH=default -D CMAKE_PREFIX_PATH=~/Qt5.12.8/5.12.8/clang_64 ..
+cmake -D CMAKE_BUILD_TYPE=Release -D ARCH=default -D CMAKE_PREFIX_PATH=/path/to/Qt5.12.8/5.12.8/clang_64 ..
 make
 make deploy
 ```
@@ -40,9 +40,9 @@ You can check if this step worked by using `codesign -dvvv salvium-wallet-gui.ap
 
 3. `hdiutil create -fs HFS+ -srcfolder monero-gui-v0.X.Y.Z -volname salvium-wallet-gui monero-gui-mac-x64-v0.X.Y.Z.dmg`
 
-4. `xcrun altool -t osx --file monero-gui-mac-x64-v0.X.Y.Z.dmg --primary-bundle-id org.monero-project.salvium-wallet-gui.dmg --notarize-app --username email@address.org`
+4. `xcrun notarytool submit monero-gui-mac-x64-v0.X.Y.Z.dmg --apple-id email@address.org --team-id XXXXXXXXXX`
 
-5. `xcrun altool --notarization-info aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeee -u email@address.org`
+5. `xcrun notarytool info aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeee --apple-id email@address.org --team-id XXXXXXXXXX`
 
 6. `xcrun stapler staple -v monero-gui-mac-x64-v0.X.Y.Z.dmg`
 

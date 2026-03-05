@@ -65,6 +65,7 @@ Rectangle {
     property bool sweepUnmixable: false
     property bool stake: false
     property bool audit: false
+    property bool createToken: false
     property alias errorText: errorText
     property alias confirmButton: confirmButton
     property alias backButton: backButton
@@ -141,6 +142,7 @@ Rectangle {
         root.sweepUnmixable = false;
         root.stake = false;
         root.audit = false;
+        root.createToken = false;
     }
 
     function showFiatConversion(valueXMR) {
@@ -175,6 +177,8 @@ Rectangle {
                         return qsTr("Confirm stake") + translationManager.emptyString;
                     } else if (root.audit) {
                         return qsTr("Confirm Audit") + translationManager.emptyString;
+                    } else if (root.createToken) {
+                        return qsTr("Confirm token creation") + translationManager.emptyString;
                     } else {
                         return qsTr("Confirm send") + translationManager.emptyString;
                     }
@@ -213,7 +217,7 @@ Rectangle {
                     if (root.transactionAmount == "(all)" && currentWallet.isHwBacked() === true) {
                         return qsTr("All unlocked balance") +  translationManager.emptyString;
                     } else {
-                        return root.transactionAmount + (root.audit ? " SAL" : " SAL1") +  translationManager.emptyString;
+                        return root.transactionAmount + " " + (root.createToken ? "SAL1" : (root.audit ? "SAL" : persistentSettings.assetType)) +  translationManager.emptyString;
                     }
                 }
             }
@@ -279,7 +283,7 @@ Rectangle {
                 font.pixelSize: 15
                 color: MoneroComponents.Style.dimmedFontColor
                 text: qsTr("To") + ":" + translationManager.emptyString
-                visible: !root.stake && !root.audit
+                visible: !root.stake && !root.audit && !root.createToken
             }
 
             Flickable {
@@ -291,7 +295,7 @@ Rectangle {
                     : recipientsArea.contentHeight
                 boundsBehavior: isMac ? Flickable.DragAndOvershootBounds : Flickable.StopAtBounds
                 clip: true
-                visible: !root.stake && !root.audit
+                visible: !root.stake && !root.audit && !root.createToken
 
                 TextArea.flickable: TextArea {
                     id : recipientsArea
@@ -321,7 +325,10 @@ Rectangle {
                                 title = qsTr("Salvium address") + translationManager.emptyString;
                             }
                             if (recipients.length > 1) {
-                                title = "%1. %2 - %3 %4".arg(index + 1).arg(title).arg(recipient.amount).arg(root.audit ? "SAL" : "SAL1")
+                                var totalAmount = 0;
+                                for (var iter = 0; iter < recipients.length; ++iter)
+                                    totalAmount += recipients[iter].amount
+                                title = "%1. %2 - %3 %4".arg(index + 1).arg(title).arg(totalAmount).arg(root.audit ? "SAL" : persistentSettings.assetType)
                                 if (persistentSettings.fiatPriceEnabled) {
                                     title += " (%1)".arg(showFiatConversion(recipient.amount));
                                 }
@@ -349,6 +356,7 @@ Rectangle {
 
                 Text {
                     property bool maliciousTxFee: parseFloat(root.transactionFee) > 0.05
+                    // Maybe change the line above with : property bool maliciousTxFee: !root.createToken && parseFloat(root.transactionFee) > 0.05
                     color: maliciousTxFee ? "red" : MoneroComponents.Style.defaultFontColor
                     font.pixelSize: maliciousTxFee ? 20 : 15
                     text: {

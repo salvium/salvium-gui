@@ -2567,8 +2567,8 @@ Als u wilt dat deze functie wordt geïmplementeerd, neem dan contact op met het 
     </message>
     <message>
         <location filename="pages/Sign.qml" line="341"/>
-        <source>Enter the Salvium Address (example: SaLvD...)</source>
-        <translation>Voer het Salvium-adres in (bijvoorbeeld: SaLvD...)</translation>
+        <source>Enter the Salvium Address (example: SC1...)</source>
+        <translation>Voer het Salvium-adres in (bijvoorbeeld: SC1...)</translation>
     </message>
     <message>
         <location filename="pages/Sign.qml" line="351"/>

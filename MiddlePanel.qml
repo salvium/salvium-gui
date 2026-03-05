@@ -64,6 +64,9 @@ Rectangle {
         onStakeClicked: root.stakeClicked(amount, paymentId, mixinCount, priority, description)
     }
     property Yield yieldView: Yield { }
+    property CreateToken createTokenView: CreateToken {
+        onCreateTokenClicked: root.createTokenClicked(assetType, supply, metadata, name, size, hash, url)
+    }
     property Advanced advancedView: Advanced { }
     property Settings settingsView: Settings { }
     property AddressBook addressBookView: AddressBook { }
@@ -72,6 +75,7 @@ Rectangle {
 
     signal paymentClicked(var recipients, string paymentId, int mixinCount, int priority, string description)
     signal stakeClicked(string amount, string paymentId, int mixinCount, int priority, string description)
+    signal createTokenClicked(string assetType, string supply, string metadata, string name, int size, string hash, string url)
     signal auditClicked(int mixinCount, int priority)
     signal sweepUnmixableClicked()
     signal generatePaymentIdInvoked()
@@ -149,6 +153,16 @@ Rectangle {
                 PropertyChanges { target: root; currentView: auditView }
                 PropertyChanges { target: mainFlickable; contentHeight: auditView.transferHeight1 + auditView.transferHeight2 + 80 }
             }, State {
+                name: "CreateToken"
+                PropertyChanges { target: root; currentView: createTokenView }
+                PropertyChanges { target: mainFlickable; contentHeight: createTokenView.createTokenHeight + 80 }
+            },
+            // State {
+            //     name: "Audit"
+            //     PropertyChanges { target: root; currentView: auditView }
+            //     PropertyChanges { target: mainFlickable; contentHeight: auditView.transferHeight1 + auditView.transferHeight2 + 80 }
+            // },
+            State {
                 name: "Transfer"
                 PropertyChanges { target: root; currentView: transferView }
                 PropertyChanges { target: mainFlickable; contentHeight: transferView.transferHeight1 + transferView.transferHeight2 + 80 }

@@ -166,7 +166,7 @@ Rectangle {
           visible: leftPanel.minutesToUnlock !== ""
 
           MoneroComponents.WarningBox {
-              text: qsTr("Spendable funds: %1 SAL1. Please wait ~%2 minutes for your whole balance to become spendable.").arg(leftPanel.balanceUnlockedString).arg(leftPanel.minutesToUnlock)
+              text: qsTr("Spendable funds: %1 %3. Please wait ~%2 minutes for your whole balance to become spendable.").arg(leftPanel.balanceUnlockedString).arg(leftPanel.minutesToUnlock).arg(appWindow.persistentSettings.assetType)
           }
       }
 
@@ -395,11 +395,11 @@ Rectangle {
                                 wrapMode: Text.WrapAnywhere
                                 placeholderText: {
                                     if(persistentSettings.nettype == NetworkType.MAINNET){
-                                        return "SaLv / salvium:.. / OpenAlias";
+                                        return "SC1.. / salvium:.. / OpenAlias";
                                     } else if (persistentSettings.nettype == NetworkType.STAGENET){
-                                        return "SaLvS / salvium:..";
+                                        return "SC1S.. / salvium:..";
                                     } else if(persistentSettings.nettype == NetworkType.TESTNET){
-                                        return "SaLvT.. / salvium:..";
+                                        return "SC1T.. / salvium:..";
                                     }
                                 }
                                 onTextChanged: {
@@ -510,11 +510,11 @@ Rectangle {
                             }
 
                             MoneroComponents.TextPlain {
-                                Layout.leftMargin: recipientLayout.colSpacing / 2
                                 Layout.preferredWidth: recipientLayout.thirdRowWidth
-                                horizontalAlignment: Text.AlignHCenter
+                                leftPadding: 12
+                                horizontalAlignment: Text.AlignLeft
                                 font.family: MoneroComponents.Style.fontRegular.name
-                                text: "SAL1"
+                                text: appWindow.persistentSettings.assetType
                                 visible: recipientModel.count == 1
                             }
                         }
@@ -597,7 +597,7 @@ Rectangle {
                         Layout.maximumWidth: recipientLayout.thirdRowWidth
                         horizontalAlignment: Text.AlignHCenter
                         font.family: MoneroComponents.Style.fontRegular.name
-                        text: "SAL1"
+                        text: appWindow.persistentSettings.assetType
                         visible: recipientModel.count > 1
                     }
 

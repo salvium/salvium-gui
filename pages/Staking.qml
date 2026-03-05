@@ -63,7 +63,8 @@ Rectangle {
         }
 
         // There are sufficient unlocked funds available
-        if (walletManager.amountFromString(amountInput.text) > appWindow.getUnlockedBalance()) {
+      // if (walletManager.amountFromString(amountInput.text) > (appWindow.currentWallet ? appWindow.currentWallet.unlockedBalance("SAL1") : 0)) {
+       if (walletManager.amountFromString(amountInput.text) > (appWindow.currentWallet ? appWindow.currentWallet.unlockedBalance("SAL1") : 0)) {
             return qsTr("Amount is more than unlocked balance.") + translationManager.emptyString;
         }
 
@@ -164,7 +165,7 @@ Rectangle {
                         }
 
                         MoneroComponents.TextPlain {
-                            text: leftPanel.balanceUnlockedString + " SAL1" + translationManager.emptyString;
+                            text: (appWindow.currentWallet ? walletManager.displayAmount(appWindow.currentWallet.unlockedBalance("SAL1")) : "?.??") + " SAL1 " + translationManager.emptyString;
                             Layout.rightMargin: 20
                             font.family: MoneroComponents.Style.fontMonoRegular.name;
                             font.pixelSize: 16
@@ -227,7 +228,9 @@ Rectangle {
                                             cursorPosition = 1;
                                         }
                                     }
-                                    error = (text == "") || (walletManager.amountFromString(text) == 0) || (walletManager.amountFromString(text) > appWindow.getUnlockedBalance());
+                                error = (text == "") || (walletManager.amountFromString(text) == 0) || (walletManager.amountFromString(text) > (appWindow.currentWallet ? appWindow.currentWallet.unlockedBalance("SAL1") : 0));
+
+                                // error = (text == "") || (walletManager.amountFromString(text) == 0) || (walletManager.amountFromString(text) > appWindow.getUnlockedBalance());
                                     stakeButton.enabled = !error;
                                     amount = text;
                                 }
@@ -239,7 +242,10 @@ Rectangle {
                             MoneroComponents.TextPlain {
                                 horizontalAlignment: Text.AlignHCenter
                                 font.family: MoneroComponents.Style.fontRegular.name
-                                text: "SAL1"
+                                font.bold: true
+                                themeTransition: false
+                                color: "#FF0000"
+                                text: "  SAL1    "
                                 visible: true
                             }
 
@@ -256,6 +262,16 @@ Rectangle {
                                 }
                             }
                         }
+                    }
+
+                    MoneroComponents.TextPlain {
+                        visible: appWindow.persistentSettings.assetType !== "SAL1"
+                        Layout.topMargin: 70
+                        font.pixelSize: 13
+                        font.family: MoneroComponents.Style.fontRegular.name
+                        themeTransition: false
+                        color: "#FF6C3C"
+                        text: qsTr("Note: Staking is only available for SAL1.") + translationManager.emptyString
                     }
                 }
             }

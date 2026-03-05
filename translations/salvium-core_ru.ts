@@ -2567,8 +2567,8 @@ If you want this feature to be implemented, please contact the team.</source>
     </message>
     <message>
         <location filename="pages/Sign.qml" line="341"/>
-        <source>Enter the Salvium Address (example: SaLvD...)</source>
-        <translation>Введите адрес Salvium (пример: SaLvD...)</translation>
+        <source>Enter the Salvium Address (example: SC1...)</source>
+        <translation>Введите адрес Salvium (пример: SC1...)</translation>
     </message>
     <message>
         <location filename="pages/Sign.qml" line="351"/>

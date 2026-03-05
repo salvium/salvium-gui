@@ -139,10 +139,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            if(parent.checked)
-                return
             button.doClick()
-            parent.checked = true
         }
     }
 

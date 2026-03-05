@@ -7,13 +7,9 @@ ENV SOURCE_DATE_EPOCH=1397818193
 
 # Install base dependencies
 RUN apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y build-essential cmake g++-mingw-w64 gettext git libtool pkg-config \
+    DEBIAN_FRONTEND=noninteractive apt install -y build-essential clang cmake gettext git libtool pkg-config \
     python3 libiconv-hook-dev libx11-dev libxcb1-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxrandr-dev libxinerama-dev libxcursor-dev \
     && rm -rf /var/lib/apt/lists/*
-
-# Set mingw-w64 alternatives
-RUN update-alternatives --set x86_64-w64-mingw32-g++ $(which x86_64-w64-mingw32-g++-posix) && \
-    update-alternatives --set x86_64-w64-mingw32-gcc $(which x86_64-w64-mingw32-gcc-posix)
 
 # Clone Salvium and copy the 'depends' build system
 RUN git clone --recursive https://github.com/salvium/salvium --branch ${SALVIUM_VERSION} && \
@@ -23,7 +19,7 @@ RUN git clone --recursive https://github.com/salvium/salvium --branch ${SALVIUM_
     rm -rf salvium
 
 # Build dependencies (except Qt)
-RUN make -j$THREADS -C /depends HOST=x86_64-w64-mingw32 NO_QT=1
+RUN make -j$THREADS -C /depends HOST=x86_64-apple-darwin NO_QT=1
 
 # Build Qt
 RUN git clone git://code.qt.io/qt/qt5.git -b ${QT_VERSION} --depth 1 && \
@@ -39,8 +35,8 @@ RUN git clone git://code.qt.io/qt/qt5.git -b ${QT_VERSION} --depth 1 && \
     git clone git://code.qt.io/qt/qttools.git -b ${QT_VERSION} --depth 1 && \
     git clone git://code.qt.io/qt/qttranslations.git -b ${QT_VERSION} --depth 1 && \
     git clone git://code.qt.io/qt/qtxmlpatterns.git -b ${QT_VERSION} --depth 1 && \
-    ./configure --prefix=/depends/x86_64-w64-mingw32 -xplatform win32-g++ \
-    -device-option CROSS_COMPILE=/usr/bin/x86_64-w64-mingw32- \
+    ./configure --prefix=/depends/x86_64-apple-darwin -xplatform macx-clang \
+    -device-option CROSS_COMPILE=/usr/bin/clang \
     -I $(pwd)/qtbase/src/3rdparty/angle/include \
     -opensource -confirm-license -release -static -static-runtime -opengl dynamic -no-angle \
     -no-avx -no-openssl -no-sql-sqlite \
@@ -70,7 +66,7 @@ RUN git clone -b libgpg-error-1.38 --depth 1 git://git.gnupg.org/libgpg-error.gi
     git reset --hard 71d278824c5fe61865f7927a2ed1aa3115f9e439 && \
     ./autogen.sh && \
     ./configure --disable-shared --enable-static --disable-doc --disable-tests \
-    --host=x86_64-w64-mingw32 --prefix=/depends/x86_64-w64-mingw32 && \
+    --host=x86_64-linux-gnu --prefix=/depends/x86_64-apple-darwin && \
     make -j$THREADS && \
     make -j$THREADS install && \
     cd .. && \
@@ -81,8 +77,8 @@ RUN git clone -b libgcrypt-1.8.5 --depth 1 git://git.gnupg.org/libgcrypt.git && 
     git reset --hard 56606331bc2a80536db9fc11ad53695126007298 && \
     ./autogen.sh && \
     ./configure --disable-shared --enable-static --disable-doc \
-    --host=x86_64-w64-mingw32 --prefix=/depends/x86_64-w64-mingw32 \
-    --with-gpg-error-prefix=/depends/x86_64-w64-mingw32 && \
+    --host=x86_64-linux-gnu --prefix=/depends/x86_64-apple-darwin \
+    --with-gpg-error-prefix=/depends/x86_64-apple-darwin && \
     make -j$THREADS && \
     make -j$THREADS install && \
     cd .. && \

@@ -1,0 +1,339 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'The tag name to create (e.g., v1.0.1)'
+        required: true
+      release_notes:
+        description: 'Release notes or description (supports Markdown)'
+        required: false
+        default: 'New release'
+
+env:
+  FREE_DISKSPACE: |
+    sudo rm -rf /usr/local/.ghcup /usr/share/dotnet /usr/share/swift /usr/share/miniconda
+
+jobs:
+
+  build-macos-app:
+    name: 1. Download Daemon & Build GUI App
+    runs-on: macos-latest
+    env:
+      QT_TAG: v5.15.17-lts-lgpl
+      QT_PREFIX: ${{ github.workspace }}/qt-install
+
+    steps:
+      - name: Free up disk space
+        run: ${{ env.FREE_DISKSPACE }}
+
+      - name: Check out code (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Install download dependencies (jq)
+        run: brew install jq
+
+      - name: Get Latest Salvium Release Asset URL
+        id: get_asset_url
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          API_URL="https://api.github.com/repos/salvium/salvium/releases/latest"
+          echo "Fetching latest release data from $API_URL"
+          LATEST_RELEASE_JSON=$(curl -sL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.v3+json" "$API_URL")
+
+          if ! echo "$LATEST_RELEASE_JSON" | jq empty; then
+            echo "Error: Failed to fetch valid JSON from GitHub API."
+            echo "$LATEST_RELEASE_JSON"
+            exit 1
+          fi
+
+          ASSET_URL=$(echo "$LATEST_RELEASE_JSON" | jq -r '.assets[] | select(.name | endswith("macos-aarch64.zip") or endswith("macos-arm64.zip")) | .browser_download_url' | head -n 1)
+
+          if [ -z "$ASSET_URL" ] || [ "$ASSET_URL" == "null" ]; then
+            echo "Error: Could not find macOS ARM64 asset (macos-aarch64.zip or macos-arm64.zip) in the latest release JSON."
+            echo "$LATEST_RELEASE_JSON" | jq -r '.assets[].name'
+            exit 1
+          fi
+
+          echo "url=$ASSET_URL" >> $GITHUB_OUTPUT
+
+      - name: Create download directory
+        run: mkdir ./static-daemon-zip
+
+      - name: Download Salvium Release Zip
+        run: |
+          curl -L -o ./static-daemon-zip/salvium-macos.zip "${{ steps.get_asset_url.outputs.url }}"
+
+      - name: Create extract directory
+        run: mkdir ./static-daemon-extracted
+
+      - name: Unzip Daemon
+        run: |
+          unzip ./static-daemon-zip/salvium-macos.zip salviumd -d ./static-daemon-extracted
+          if [ ! -f ./static-daemon-extracted/salviumd ]; then
+            echo "Error: Failed to extract salviumd from the zip file."
+            unzip -l ./static-daemon-zip/salvium-macos.zip
+            exit 1
+          fi
+
+      - name: Make Static Daemon Executable
+        run: chmod +x ./static-daemon-extracted/salviumd
+
+      - name: Upload Static Daemon Artifact (for next job)
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-salviumd-local
+          path: ./static-daemon-extracted/salviumd
+          retention-days: 1
+
+      - name: Install GUI build dependencies (Homebrew)
+        run: |
+          brew install boost@1.85 openssl@1.1 libsodium pkg-config cmake zeromq \
+                       hidapi libpgm miniupnpc expat libunwind-headers protobuf ccache unbound libgcrypt
+
+      - name: Clone qt repo
+        run: git clone -b "${{ env.QT_TAG }}" --recursive --depth 1 --shallow-submodules https://github.com/qt/qt5
+
+      - name: Build qt from source
+        run: |
+          cd qt5
+          mkdir build && cd build
+          ../configure -prefix "${{ env.QT_PREFIX }}" -opensource -confirm-license -release -nomake examples -nomake tests -no-rpath \
+                       -skip qtwebengine -skip qt3d -skip qtandroidextras -skip qtcanvas3d -skip qtcharts -skip qtconnectivity \
+                       -skip qtdatavis3d -skip qtdoc -skip qtgamepad -skip qtlocation -skip qtnetworkauth -skip qtpurchasing \
+                       -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtspeech \
+                       -skip qttools -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebsockets \
+                       -skip qtwebview -skip qtwinextras -skip qtx11extras -skip gamepad -skip serialbus -skip location -skip webengine
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+
+          cd ../qttools/src/linguist/lrelease
+          ../../../../build/qtbase/bin/qmake
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+
+          cd ../../../../qttools/src/macdeployqt/macdeployqt/
+          ../../../../build/qtbase/bin/qmake
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+
+      - name: Set up GUI build environment paths
+        run: |
+          echo "CMAKE_PREFIX_PATH=${{ env.QT_PREFIX }}:/opt/homebrew/opt/openssl@1.1:/opt/homebrew/opt/boost@1.85:/opt/homebrew/opt/libsodium:/opt/homebrew/opt/miniupnpc:/opt/homebrew/opt/protobuf" >> $GITHUB_ENV
+          echo "${{ env.QT_PREFIX }}/bin" >> $GITHUB_PATH
+
+      - name: Configure CMake (GUI)
+        run: |
+          mkdir -p build/release
+          cd build/release
+          /opt/homebrew/bin/cmake -D CMAKE_BUILD_TYPE=Release \
+                -D DEV_MODE=OFF \
+                -D MANUAL_SUBMODULES=OFF \
+                -D CMAKE_POLICY_DEFAULT_CMP0074=NEW \
+                -D Boost_INCLUDE_DIR=/opt/homebrew/opt/boost@1.85/include \
+                -D Boost_LIBRARY_DIR=/opt/homebrew/opt/boost@1.85/lib \
+                -D CMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/opt/openssl@1.1/lib" \
+                -D CMAKE_CXX_FLAGS="-I/opt/homebrew/opt/boost@1.85/include" \
+                ../..
+        env:
+           CMAKE_PREFIX_PATH: ${{ env.CMAKE_PREFIX_PATH }}
+
+      - name: Build and Deploy (Make)
+        run: |
+          cd build/release
+          make -j$(sysctl -n hw.ncpu)
+          make deploy
+
+      - name: Test QML
+        run: |
+          cd build/release/bin
+          ./salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui --test-qml
+
+      - name: Upload GUI App Artifact (for next job)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-bundle-local
+          path: build/release/bin/salvium-wallet-gui.app
+          retention-days: 1
+
+  bundle-macos-release:
+    name: 2. Create Final macOS DMG
+    runs-on: macos-latest
+    needs: build-macos-app
+
+    steps:
+      - name: Download Static Daemon
+        uses: actions/download-artifact@v4
+        with:
+          name: static-salviumd-local
+          path: ./static-daemon
+
+      - name: Download App Bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-app-bundle-local
+          path: ./salvium-wallet-gui.app
+
+      - name: Replace Daemon with Static Version
+        run: |
+          cp ./static-daemon/salviumd ./salvium-wallet-gui.app/Contents/MacOS/salviumd
+
+      - name: Ensure GUI Executable has Execute Permissions
+        run: |
+          chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui
+          chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salviumd
+
+      - name: Create unsigned .dmg
+        run: |
+          hdiutil create -fs HFS+ -srcfolder ./salvium-wallet-gui.app -volname "salvium-gui" salvium-gui-unsigned.dmg
+
+      - name: Upload Final DMG Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-macos-dmg
+          path: salvium-gui-unsigned.dmg
+          retention-days: 1
+
+  build-windows:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+      - name: Build Docker Image for Windows Env
+        run: |
+          docker build --tag salvium:build-env-windows \
+                       --build-arg THREADS=$(nproc) \
+                       -f Dockerfile.windows .
+      - name: Compile Salvium GUI (Windows Target)
+        run: |
+          docker run --rm --user $(id -u):$(id -g) \
+          -v "${{ github.workspace }}":/salvium-gui \
+          -w /salvium-gui salvium:build-env-windows \
+          sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j$(nproc)'
+
+      - name: Locate Windows build outputs
+        run: |
+          BIN_DIR=$(find build/x86_64-w64-mingw32/release/bin -type d | head -n 1)
+          if [ -z "$BIN_DIR" ] || [ ! -d "$BIN_DIR" ]; then
+            echo "Windows bin directory not found!"
+            exit 1
+          fi
+          if [ ! -f "$BIN_DIR/salvium-wallet-gui.exe" ]; then
+            echo "salvium-wallet-gui.exe not found in $BIN_DIR"
+            exit 1
+          fi
+          echo "BIN_DIR_PATH=$BIN_DIR" >> $GITHUB_ENV
+
+      - name: Create ZIP archive
+        run: |
+          cd "${{ env.BIN_DIR_PATH }}"
+          if [ -f salviumd.exe ]; then
+            zip salvium-gui-windows-x64.zip salvium-wallet-gui.exe salviumd.exe
+          else
+            zip salvium-gui-windows-x64.zip salvium-wallet-gui.exe
+          fi
+          echo "ZIP_PATH=${{ env.BIN_DIR_PATH }}/salvium-gui-windows-x64.zip" >> $GITHUB_ENV
+
+      - name: Upload Artifact (Zipped Windows Build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: salvium-gui-windows-x64-zip
+          path: ${{ env.ZIP_PATH }}
+          if-no-files-found: error # Fail the job if the zip wasn't created
+
+  docker-linux-static:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: satackey/action-docker-layer-caching@v0.0.11
+      if: "!startsWith(github.ref, 'refs/tags/v')"
+      continue-on-error: true
+    - name: install host dependencies (for xvfb and zip)
+      run: sudo apt update && sudo apt -y install xvfb libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xkb1 libxcb-shape0 libxkbcommon-x11-0 libegl1 zip
+    - name: free up diskspace
+      run: ${{env.FREE_DISKSPACE}}
+    - name: prepare build environment (Docker)
+      run: docker build --tag salvium:build-env-linux --build-arg THREADS=$(nproc) --file Dockerfile.linux .
+    - name: build (inside Docker)
+      run: docker run --rm -v ${{ github.workspace }}:/salvium-gui -w /salvium-gui salvium:build-env-linux sh -c 'make release-static -j$(nproc)'
+    - name: Fix file permissions
+      run: sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}/build
+    - name: Locate Linux build outputs
+      run: |
+        BIN_DIR=${{ github.workspace }}/build/release/bin
+        if [ ! -d "$BIN_DIR" ]; then
+          echo "Linux bin directory not found!"
+          exit 1
+        fi
+        echo "BIN_DIR_PATH=$BIN_DIR" >> $GITHUB_ENV
+    - name: test qml
+      run: xvfb-run -a ${{ github.workspace }}/build/release/bin/salvium-wallet-gui --test-qml
+
+    - name: Create ZIP archive
+      run: |
+        cd "${{ env.BIN_DIR_PATH }}"
+        zip salvium-gui-linux-x64-static.zip salvium-wallet-gui salviumd
+        echo "ZIP_PATH=${{ env.BIN_DIR_PATH }}/salvium-gui-linux-x64-static.zip" >> $GITHUB_ENV
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: salvium-gui-linux-x64-static-zip
+        path: ${{ env.ZIP_PATH }}
+
+  # --- Android job completely removed ---
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - bundle-macos-release
+      - build-windows
+      - docker-linux-static
+      # - docker-android # Removed from needs
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display artifact structure
+        run: ls -R ./artifacts
+
+      - name: Find artifact paths
+        id: find_files
+        run: |
+          echo "macos_dmg_path=$(find ./artifacts/final-macos-dmg -name '*.dmg' | head -n 1)" >> $GITHUB_OUTPUT
+          echo "windows_zip_path=$(find ./artifacts/salvium-gui-windows-x64-zip -name '*.zip' | head -n 1)" >> $GITHUB_OUTPUT
+          echo "linux_zip_path=$(find ./artifacts/salvium-gui-linux-x64-static-zip -name '*.zip' | head -n 1)" >> $GITHUB_OUTPUT
+          # apk_path removed
+
+      - name: Create Release Notes File
+        env:
+          RELEASE_NOTES: ${{ github.event.inputs.release_notes }}
+        run: echo "$RELEASE_NOTES" > release_body.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          name: Release ${{ github.event.inputs.tag_name }}
+          body_path: release_body.md
+          draft: false
+          prerelease: false
+          files: |
+            ${{ steps.find_files.outputs.macos_dmg_path }}
+            ${{ steps.find_files.outputs.windows_zip_path }}
+            ${{ steps.find_files.outputs.linux_zip_path }}
