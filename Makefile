@@ -37,7 +37,7 @@ debug-static:
 
 depends:
 	mkdir -p build/$(target)/release
-	cd build/$(target)/release && cmake -D STATIC=ON -D DEV_MODE=$(or ${DEV_MODE},OFF) -DMANUAL_SUBMODULES=${MANUAL_SUBMODULES} -D BUILD_TAG=$(tag) -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE=$(CURDIR)/salvium/contrib/depends/$(target)/share/toolchain.cmake ../../.. && $(MAKE)
+	cd build/$(target)/release && cmake -D STATIC=ON -D DEV_MODE=$(or ${DEV_MODE},OFF) -DMANUAL_SUBMODULES=${MANUAL_SUBMODULES} -D BUILD_TAG=$(tag) -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE=/depends/$(target)/share/toolchain.cmake ../../.. && $(MAKE)
 
 devmode:
 	mkdir -p build && cd build && cmake -D DEV_MODE=$(or ${DEV_MODE},ON) -DMANUAL_SUBMODULES=${MANUAL_SUBMODULES} -D BUILD_64=ON -D CMAKE_BUILD_TYPE=Release .. && $(MAKE)

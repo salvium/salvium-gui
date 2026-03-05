@@ -71,6 +71,8 @@ QVariant TransactionHistoryModel::parseTransactionInfo(const TransactionInfo &tI
         return tInfo.isFailed();
     case TransactionAmountRole:
         return tInfo.amount();
+    case TransactionAssetRole:
+        return tInfo.asset();
     case TransactionDisplayAmountRole:
         return tInfo.displayAmount();
     case TransactionAtomicAmountRole:
@@ -161,6 +163,7 @@ QHash<int, QByteArray> TransactionHistoryModel::roleNames() const
     roleNames.insert(TransactionPendingRole, "isPending");
     roleNames.insert(TransactionFailedRole, "isFailed");
     roleNames.insert(TransactionAmountRole, "amount");
+    roleNames.insert(TransactionAssetRole, "asset");
     roleNames.insert(TransactionDisplayAmountRole, "displayAmount");
     roleNames.insert(TransactionAtomicAmountRole, "atomicAmount");
     roleNames.insert(TransactionFeeRole, "fee");

@@ -135,6 +135,11 @@ QString TransactionInfo::description() const
     return m_description;
 }
 
+QString TransactionInfo::asset() const
+{
+    return m_asset;
+}
+
 QString TransactionInfo::destinations_formatted() const
 {
     QString destinations;
@@ -169,10 +174,11 @@ TransactionInfo::TransactionInfo(const Monero::TransactionInfo *pimpl, QObject *
     , m_timestamp(QDateTime::fromTime_t(pimpl->timestamp()))
     , m_unlockTime(pimpl->unlockTime())
     , m_type(pimpl->type())
+    , m_asset(QString::fromStdString(pimpl->asset()))
 {
     for (auto const &t: pimpl->transfers())
     {
-        Transfer *transfer = new Transfer(t.amount, QString::fromStdString(t.address), this);
+        Transfer *transfer = new Transfer(t.amount, QString::fromStdString(t.address), QString::fromStdString(t.asset), this);
         m_transfers.append(transfer);
     }
     for (uint32_t i : pimpl->subaddrIndex())

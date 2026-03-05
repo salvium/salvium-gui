@@ -66,11 +66,17 @@ QVariant SubaddressAccountModel::data(const QModelIndex &index, int role) const
         case SubaddressAccountLabelRole:
             result = QString::fromStdString(row.getLabel());
             break;
-        case SubaddressAccountBalanceRole:
-            result = QString::fromStdString(row.getBalance());
+        case SubaddressAccountSALBalanceRole:
+            result = QString::fromStdString(row.getBalance("SAL"));
             break;
-        case SubaddressAccountUnlockedBalanceRole:
-            result = QString::fromStdString(row.getUnlockedBalance());
+        case SubaddressAccountSALUnlockedBalanceRole:
+            result = QString::fromStdString(row.getUnlockedBalance("SAL"));
+            break;
+        case SubaddressAccountSAL1BalanceRole:
+            result = QString::fromStdString(row.getBalance("SAL1"));
+            break;
+        case SubaddressAccountSAL1UnlockedBalanceRole:
+            result = QString::fromStdString(row.getUnlockedBalance("SAL1"));
             break;
         default:
             qCritical() << "Unimplemented role" << role;
@@ -90,8 +96,10 @@ QHash<int, QByteArray> SubaddressAccountModel::roleNames() const
     {
         roleNames.insert(SubaddressAccountAddressRole, "address");
         roleNames.insert(SubaddressAccountLabelRole, "label");
-        roleNames.insert(SubaddressAccountBalanceRole, "balance");
-        roleNames.insert(SubaddressAccountUnlockedBalanceRole, "unlockedBalance");
+        roleNames.insert(SubaddressAccountSALBalanceRole, "balanceSAL");
+        roleNames.insert(SubaddressAccountSAL1BalanceRole, "balanceSAL1");
+        roleNames.insert(SubaddressAccountSALUnlockedBalanceRole, "unlockedBalanceSAL");
+        roleNames.insert(SubaddressAccountSAL1UnlockedBalanceRole, "unlockedBalanceSAL1");
     }
     return roleNames;
 }

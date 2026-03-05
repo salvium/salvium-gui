@@ -46,7 +46,7 @@ Do you speak a second language and would like to help translate the Salvium GUI?
 
 ## Compiling the Salvium GUI from source
 
-*Note*: Qt 5.9.7 is the minimum version required to build the GUI.
+*Note*: Qt 5.12 is the minimum version required to build the GUI.
 
 *Note*: Official GUI releases use salvium-wallet-gui from this process alongside the supporting binaries (salviumd, etc) from the [CLI deterministic builds](https://github.com/salvium/salvium/blob/main/contrib/gitian/README.md).
 
@@ -61,13 +61,13 @@ Do you speak a second language and would like to help translate the Salvium GUI?
 3. Prepare build environment
    ```
    cd salvium-gui
-   docker build --tag monero:build-env-windows --build-arg THREADS=4 --file Dockerfile.windows .
+   docker build --tag salvium:build-env-windows --build-arg THREADS=4 --file Dockerfile.windows .
    ```
    \* `4` - number of CPU threads to use
 
 4. Build
    ```
-   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -w /salvium-gui monero:build-env-windows sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j4'
+   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -w /salvium-gui salvium:build-env-windows sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j4'
    ```
    \* `<SALVIUM_GUI_DIR_FULL_PATH>` - absolute path to `salvium-gui` directory  
    \* `4` - number of CPU threads to use
@@ -84,20 +84,20 @@ Do you speak a second language and would like to help translate the Salvium GUI?
 3. Prepare build environment
    ```
    cd salvium-gui
-   docker build --tag monero:build-env-linux --build-arg THREADS=4 --file Dockerfile.linux .
+   docker build --tag salvium:build-env-linux --build-arg THREADS=4 --file Dockerfile.linux .
    ```
    \* `4` - number of CPU threads to use
 
 4. Build
    ```
-   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -w /salvium-gui monero:build-env-linux sh -c 'make release-static -j4'
+   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -w /salvium-gui salvium:build-env-linux sh -c 'make release-static -j4'
    ```
    \* `<SALVIUM_GUI_DIR_FULL_PATH>` - absolute path to `salvium-gui` directory  
    \* `4` - number of CPU threads to use
 5. Salvium GUI Linux static binaries will be placed in  `salvium-gui/build/release/bin` directory
 6. (*Optional*) Compare `salvium-wallet-gui` SHA-256 hash to the one obtained from a trusted source
    ```
-   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -w /salvium-gui monero:build-env-linux sh -c 'shasum -a 256 /salvium-gui/build/release/bin/salvium-wallet-gui'
+   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -w /salvium-gui salvium:build-env-linux sh -c 'shasum -a 256 /salvium-gui/build/release/bin/salvium-wallet-gui'
    ```
    \* `<SALVIUM_GUI_DIR_FULL_PATH>` - absolute path to `salvium-gui` directory  
 
@@ -112,13 +112,13 @@ Do you speak a second language and would like to help translate the Salvium GUI?
 3. Prepare build environment
    ```
    cd salvium-gui
-   docker build --tag monero:build-env-android --build-arg THREADS=4 --file Dockerfile.android .
+   docker build --tag salvium:build-env-android --build-arg THREADS=4 --file Dockerfile.android .
    ```
    \* `4` - number of CPU threads to use
 
 4. Build
    ```
-   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -e THREADS=4 monero:build-env-android
+   docker run --rm -it -v <SALVIUM_GUI_DIR_FULL_PATH>:/salvium-gui -e THREADS=4 salvium:build-env-android
    ```
    \* `<SALVIUM_GUI_DIR_FULL_PATH>` - absolute path to `salvium-gui` directory  
    \* `4` - number of CPU threads to use
@@ -260,7 +260,7 @@ The Salvium GUI on Windows is 64 bits only; 32-bit Windows GUI builds are not of
 3. Install MSYS2 packages for Salvium dependencies; the needed 64-bit packages have `x86_64` in their names
 
     ```
-    pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-libgcrypt mingw-w64-x86_64-unbound mingw-w64-x86_64-pcre
+    pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb mingw-w64-x86_64-libgcrypt mingw-w64-x86_64-unbound mingw-w64-x86_64-pcre mingw-w64-x86_64-angleproject
     ```
 
     You find more details about those dependencies in the [Salvium documentation](https://github.com/salvium/salvium). Note that that there is no more need to compile Boost from source; like everything else, you can install it now with a MSYS2 package.

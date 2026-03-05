@@ -8,8 +8,8 @@
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
 //
-// 2. Redistributions in binary form must reproduce the above copyright notice, this list
-//    of conditions and the following disclaimer in the documentation and/or other
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of
+//    conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
 //
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
@@ -86,9 +86,6 @@ Rectangle {
                 Layout.fillWidth: true
                 fontSize: 24
                 textFormat: Text.RichText
-<<<<<<< Updated upstream
-                text: qsTr("Balance All") + translationManager.emptyString
-=======
                 text: qsTr("Balance (SAL1) ") + translationManager.emptyString
             }
 
@@ -168,7 +165,6 @@ Rectangle {
                 fontSize: 24
                 textFormat: Text.RichText
                 text: qsTr("Balance") + " (" + appWindow.persistentSettings.assetType + ")" + translationManager.emptyString
->>>>>>> Stashed changes
             }
 
             RowLayout {
@@ -292,7 +288,7 @@ Rectangle {
 
             ColumnLayout {
                 id: subaddressAccountListRow
-                property int subaddressAccountListItemHeight: 50
+                property int subaddressAccountListItemHeight: 80
                 Layout.topMargin: 6
                 Layout.fillWidth: true
                 Layout.minimumWidth: 240
@@ -345,56 +341,25 @@ Rectangle {
                             anchors.rightMargin: 80
                             color: "transparent"
 
-                            MoneroComponents.Label {
-                                id: idLabel
-                                color: index === currentAccountIndex ? MoneroComponents.Style.defaultFontColor : "#757575"
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: parent.left
-                                anchors.leftMargin: 6
-                                fontSize: 16
-                                text: "#" + index
-                                themeTransition: false
-                            }
+                            ColumnLayout {
+                                anchors.fill: parent
+                                spacing: 4
 
-                            MoneroComponents.Label {
-                                id: nameLabel
-                                color: index === currentAccountIndex ? MoneroComponents.Style.defaultFontColor : MoneroComponents.Style.dimmedFontColor
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: idLabel.right
-                                anchors.leftMargin: 6
-                                fontSize: 16 
-                                text: label
-                                elide: Text.ElideRight
-                                textWidth: addressLabel.x - nameLabel.x - 1
-                                themeTransition: false
-                            }
+                                // First row
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 30
+                                    spacing: 12
 
-                            MoneroComponents.Label {
-                                id: addressLabel
-                                color: MoneroComponents.Style.defaultFontColor
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: balanceNumberLabel.left
-                                anchors.leftMargin: -addressLabel.width - 30
-                                fontSize: 16
-                                fontFamily: MoneroComponents.Style.fontMonoRegular.name;
-                                text: TxUtils.addressTruncatePretty(address, mainLayout.width < 740 ? 1 : (mainLayout.width < 900 ? 2 : 3))
-                                themeTransition: false
-                            }
+                                    MoneroComponents.Label {
+                                        id: idLabel
+                                        color: index === currentAccountIndex ? MoneroComponents.Style.defaultFontColor : "#757575"
+                                        Layout.leftMargin: 6
+                                        fontSize: 16
+                                        text: "#" + index
+                                        themeTransition: false
+                                    }
 
-<<<<<<< Updated upstream
-                            MoneroComponents.Label {
-                                id: balanceNumberLabel
-                                color: MoneroComponents.Style.defaultFontColor
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: parent.right
-                                anchors.leftMargin: -balanceNumberLabel.width
-                                fontSize: 16
-                                fontFamily: MoneroComponents.Style.fontMonoRegular.name;
-                                text: balance + " SAL"
-                                elide: Text.ElideRight
-                                textWidth: 180
-                                themeTransition: false
-=======
                                     MoneroComponents.Label {
                                         id: nameLabel
                                         Layout.fillWidth: true
@@ -457,7 +422,6 @@ Rectangle {
                                         themeTransition: false
                                     }
                                 }
->>>>>>> Stashed changes
                             }
 
                             MouseArea {
@@ -544,17 +508,12 @@ Rectangle {
             subaddressAccountListView.model = appWindow.currentWallet.subaddressAccountModel;
             appWindow.currentWallet.subaddress.refresh(appWindow.currentWallet.currentSubaddressAccount)
 
-<<<<<<< Updated upstream
-            balanceAll.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll()) + " SAL"
-            unlockedBalanceAll.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll()) + " SAL"
-=======
             console.log("Token amount = " + walletManager.displayAmount(appWindow.currentWallet.balanceAll(assetType)));
     
             balanceAllSAL1.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll("SAL1")) + " SAL1"
             unlockedBalanceAllSAL1.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll("SAL1")) + " SAL1"
             balanceAll.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll(assetType)) + " " + assetType
             unlockedBalanceAll.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll(assetType)) + " " + assetType
->>>>>>> Stashed changes
         }
     }
 

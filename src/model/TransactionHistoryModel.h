@@ -49,6 +49,7 @@ public:
         TransactionPendingRole,
         TransactionFailedRole,
         TransactionAmountRole,
+        TransactionAssetRole,
         TransactionDisplayAmountRole,
         TransactionFeeRole,
         TransactionBlockHeightRole,

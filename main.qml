@@ -324,11 +324,8 @@ ApplicationWindow {
         currentWallet.assetTypesChanged.disconnect(onAssetTypesChanged);
         middlePanel.paymentClicked.disconnect(handlePayment);
         middlePanel.stakeClicked.disconnect(handleStake);
-<<<<<<< Updated upstream
-=======
         middlePanel.createTokenClicked.disconnect(handleCreateToken);
         middlePanel.auditClicked.disconnect(handleAudit);
->>>>>>> Stashed changes
         middlePanel.sweepUnmixableClicked.disconnect(handleSweepUnmixable);
         middlePanel.getProofClicked.disconnect(handleGetProof);
         middlePanel.checkProofClicked.disconnect(handleCheckProof);
@@ -387,11 +384,8 @@ ApplicationWindow {
         leftPanel.assetTypeChanged.connect(onSelectedAssetTypeChanged);
         middlePanel.paymentClicked.connect(handlePayment);
         middlePanel.stakeClicked.connect(handleStake);
-<<<<<<< Updated upstream
-=======
         middlePanel.createTokenClicked.connect(handleCreateToken);
         middlePanel.auditClicked.connect(handleAudit);
->>>>>>> Stashed changes
         middlePanel.sweepUnmixableClicked.connect(handleSweepUnmixable);
         middlePanel.getProofClicked.connect(handleGetProof);
         middlePanel.checkProofClicked.connect(handleCheckProof);
@@ -440,11 +434,7 @@ ApplicationWindow {
         if(!currentWallet){
             return 0
         }
-<<<<<<< Updated upstream
-        return currentWallet.unlockedBalance()
-=======
         return currentWallet.unlockedBalance(persistentSettings.assetType)
->>>>>>> Stashed changes
     }
 
     function updateBalance() {
@@ -454,13 +444,8 @@ ApplicationWindow {
         var balance = "?.??";
         var balanceU = "?.??";
         if(!hideBalanceForced && !persistentSettings.hideBalance){
-<<<<<<< Updated upstream
-            balance = walletManager.displayAmount(currentWallet.balance());
-            balanceU = walletManager.displayAmount(currentWallet.unlockedBalance());
-=======
             balance = walletManager.displayAmount(currentWallet.balance(persistentSettings.assetType));
             balanceU = walletManager.displayAmount(currentWallet.unlockedBalance(persistentSettings.assetType));
->>>>>>> Stashed changes
         }
 
         if (persistentSettings.fiatPriceEnabled) {
@@ -470,10 +455,6 @@ ApplicationWindow {
         leftPanel.minutesToUnlock = (balance !== balanceU) ? currentWallet.history.minutesToUnlock : "";
         leftPanel.balanceString = balance
         leftPanel.balanceUnlockedString = balanceU
-        if (middlePanel.state === "Account") {
-            middlePanel.accountView.balanceAllText = walletManager.displayAmount(appWindow.currentWallet.balanceAll()) + " SAL";
-            middlePanel.accountView.unlockedBalanceAllText = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll()) + " SAL";
-        }
     }
 
     function onUriHandler(uri){
@@ -1113,8 +1094,6 @@ ApplicationWindow {
         }
     }
 
-<<<<<<< Updated upstream
-=======
     // called on "create_token"
     function handleCreateToken(asset_type, supply, metadata, name, size, hash, url) {
         console.log("Creating Create Token transaction: ")
@@ -1147,7 +1126,6 @@ ApplicationWindow {
         currentWallet.createAuditTransactionAsync(mixinCount, priority);
     }
 
->>>>>>> Stashed changes
     //Choose where to save transaction
     FileDialog {
         id: saveTxDialog
@@ -2080,9 +2058,6 @@ ApplicationWindow {
                     middlePanel.flickable.contentY = 0;
                     updateBalance();
                 }
-<<<<<<< Updated upstream
-
-=======
 /*
                 onAuditClicked: {
                     middlePanel.state = "Audit";
@@ -2090,7 +2065,6 @@ ApplicationWindow {
                     updateBalance();
                 }
 */
->>>>>>> Stashed changes
                 onYieldClicked: {
                     middlePanel.state = "Yield";
                     middlePanel.flickable.contentY = 0;

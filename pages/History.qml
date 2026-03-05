@@ -751,7 +751,7 @@ Rectangle {
                                     font.pixelSize: 15
                                     text: {
                                         if(!isout && confirmationsRequired === 60) return qsTr("Yes") + translationManager.emptyString;
-                                        if(fee !== "") return Utils.removeTrailingZeros(fee) + " SAL";
+                                        if(fee !== "") return Utils.removeTrailingZeros(fee) + " " + asset;
                                         return "-";
                                     }
 
@@ -1496,6 +1496,8 @@ Rectangle {
                     txs.push(item);
                 } else if (root.sortSearchString.toLowerCase() == "miner" && item.tx_type == 1) {
                     txs.push(item);
+                } else if (item.asset.startsWith(root.sortSearchString)) {
+                    txs.push(item);
                 }
             }
         }
@@ -1589,13 +1591,14 @@ Rectangle {
             var timestamp = new Date(date + " " + time).getTime() / 1000;
             var dateHuman = Utils.ago(timestamp);
             var tx_type = _model.data(idx, TransactionHistoryModel.TransactionTypeRole);
+            var asset = _model.data(idx, TransactionHistoryModel.TransactionAssetRole);
 
             if (amount === 0) {
                 // transactions to the same account have amount === 0, while the 'destinations string'
                 // has the correct amount, so we try to fetch it from that instead.
                 amount = Number(TxUtils.destinationsToAmount(destinations));
             }
-            var displayAmount = Utils.removeTrailingZeros(amount.toFixed(12)) + " SAL";
+            var displayAmount = Utils.removeTrailingZeros(amount.toFixed(12)) + " " + asset;
 
             var tx_note = currentWallet.getUserNote(hash);
             var address = "";
@@ -1623,6 +1626,7 @@ Rectangle {
                 "isout": isout,
                 "amount": amount,
                 "displayAmount": displayAmount,
+                "asset": asset,
                 "hash": hash,
                 "paymentId": paymentId,
                 "address": address,

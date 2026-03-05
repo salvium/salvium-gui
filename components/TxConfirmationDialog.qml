@@ -64,11 +64,8 @@ Rectangle {
     property var transactionPriority: ""
     property bool sweepUnmixable: false
     property bool stake: false
-<<<<<<< Updated upstream
-=======
     property bool audit: false
     property bool createToken: false
->>>>>>> Stashed changes
     property alias errorText: errorText
     property alias confirmButton: confirmButton
     property alias backButton: backButton
@@ -144,11 +141,8 @@ Rectangle {
         root.transactionPriority = "";
         root.sweepUnmixable = false;
         root.stake = false;
-<<<<<<< Updated upstream
-=======
         root.audit = false;
         root.createToken = false;
->>>>>>> Stashed changes
     }
 
     function showFiatConversion(valueXMR) {
@@ -181,13 +175,10 @@ Rectangle {
                         return qsTr("Sweep unmixable outputs") + translationManager.emptyString;
                     } else if (root.stake) {
                         return qsTr("Confirm stake") + translationManager.emptyString;
-<<<<<<< Updated upstream
-=======
                     } else if (root.audit) {
                         return qsTr("Confirm Audit") + translationManager.emptyString;
                     } else if (root.createToken) {
                         return qsTr("Confirm token creation") + translationManager.emptyString;
->>>>>>> Stashed changes
                     } else {
                         return qsTr("Confirm send") + translationManager.emptyString;
                     }
@@ -226,11 +217,7 @@ Rectangle {
                     if (root.transactionAmount == "(all)" && currentWallet.isHwBacked() === true) {
                         return qsTr("All unlocked balance") +  translationManager.emptyString;
                     } else {
-<<<<<<< Updated upstream
-                        return root.transactionAmount + " SAL " +  translationManager.emptyString;
-=======
                         return root.transactionAmount + " " + (root.createToken ? "SAL1" : (root.audit ? "SAL" : persistentSettings.assetType)) +  translationManager.emptyString;
->>>>>>> Stashed changes
                     }
                 }
             }
@@ -296,11 +283,7 @@ Rectangle {
                 font.pixelSize: 15
                 color: MoneroComponents.Style.dimmedFontColor
                 text: qsTr("To") + ":" + translationManager.emptyString
-<<<<<<< Updated upstream
-                visible: !root.stake
-=======
                 visible: !root.stake && !root.audit && !root.createToken
->>>>>>> Stashed changes
             }
 
             Flickable {
@@ -312,11 +295,7 @@ Rectangle {
                     : recipientsArea.contentHeight
                 boundsBehavior: isMac ? Flickable.DragAndOvershootBounds : Flickable.StopAtBounds
                 clip: true
-<<<<<<< Updated upstream
-                visible: !root.stake
-=======
                 visible: !root.stake && !root.audit && !root.createToken
->>>>>>> Stashed changes
 
                 TextArea.flickable: TextArea {
                     id : recipientsArea
@@ -346,14 +325,10 @@ Rectangle {
                                 title = qsTr("Salvium address") + translationManager.emptyString;
                             }
                             if (recipients.length > 1) {
-<<<<<<< Updated upstream
-                                title = "%1. %2 - %3 SAL".arg(index + 1).arg(title).arg(recipient.amount);
-=======
                                 var totalAmount = 0;
                                 for (var iter = 0; iter < recipients.length; ++iter)
                                     totalAmount += recipients[iter].amount
                                 title = "%1. %2 - %3 %4".arg(index + 1).arg(title).arg(totalAmount).arg(root.audit ? "SAL" : persistentSettings.assetType)
->>>>>>> Stashed changes
                                 if (persistentSettings.fiatPriceEnabled) {
                                     title += " (%1)".arg(showFiatConversion(recipient.amount));
                                 }
@@ -393,7 +368,7 @@ Rectangle {
                                     return qsTr("Calculating fee") + "..." +  translationManager.emptyString;
                                 }
                             } else {
-                                return root.transactionFee + " SAL" + (maliciousTxFee ? " (HIGH FEE)" : "")
+                                return root.transactionFee + (root.audit ? " SAL" : " SAL1") + (maliciousTxFee ? " (HIGH FEE)" : "")
                             }
                         } else {
                             return "";

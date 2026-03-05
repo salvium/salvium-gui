@@ -3,12 +3,17 @@ project(salvium-gui)
 
 message(STATUS "Initiating compile using CMake ${CMAKE_VERSION}")
 
-set(VERSION_MAJOR "6")
-set(VERSION_MINOR "4")
-set(VERSION_REVISION "0")
-set(VERSION "0.${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}")
+set(VERSION_MAJOR "0")
+set(VERSION_MINOR "1")
+set(VERSION_REVISION "a")
+set(VERSION "1.${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}")
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(STATIC "Link libraries statically, requires static Qt")
 
@@ -211,6 +216,9 @@ list(APPEND QT5_LIBRARIES
 )
 
 if(STATIC)
+
+  set(QT5_PKG_CONFIG_Qt5Qml_PREFIX $ENV{QT5_PKG_CONFIG_Qt5Qml_PREFIX})
+    
   set(QT5_EXTRA_PATHS ${QT5_PKG_CONFIG_Qt5Qml_PREFIX}/qml/Qt/labs/folderlistmodel)
   list(APPEND QT5_EXTRA_PATHS ${QT5_PKG_CONFIG_Qt5Qml_PREFIX}/qml/Qt/labs/settings)
   list(APPEND QT5_EXTRA_PATHS ${QT5_PKG_CONFIG_Qt5Qml_PREFIX}/qml/Qt/labs/platform)
@@ -230,6 +238,8 @@ if(STATIC)
   list(APPEND QT5_EXTRA_PATHS ${QT5_PKG_CONFIG_Qt5Qml_PREFIX}/qml/QtQuick/Window.2)
   list(APPEND QT5_EXTRA_PATHS ${QT5_PKG_CONFIG_Qt5Qml_PREFIX}/qml/QtQuick/XmlListModel)
 
+  message(STATUS "Using QT5_EXTRA_PATHS: '${QT5_EXTRA_PATHS}'")
+    
   set(QT5_EXTRA_LIBRARIES_LIST
     qtquicktemplates2plugin
     Qt5QuickTemplates2

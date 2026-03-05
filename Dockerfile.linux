@@ -1,22 +1,19 @@
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 
 ARG THREADS=1
-<<<<<<< Updated upstream
-ARG QT_VERSION=v5.15.14-lts-lgpl
-=======
 ARG QT_VERSION=v5.15.18-lts-lgpl
 ARG DEBIAN_FRONTEND=noninteractive
->>>>>>> Stashed changes
 
 ENV CFLAGS="-fPIC"
 ENV CPPFLAGS="-fPIC"
 ENV CXXFLAGS="-fPIC"
+ENV DEBIAN_FRONTEND=noninteractive
 ENV SOURCE_DATE_EPOCH=1397818193
 
 RUN apt update && \
-    apt install -y automake autopoint bison gettext git gperf libgl1-mesa-dev libglib2.0-dev \
-    libpng12-dev libpthread-stubs0-dev libsodium-dev libtool-bin libudev-dev libusb-1.0-0-dev mesa-common-dev \
-    pkg-config python wget xutils-dev
+    apt install -y automake build-essential cmake autopoint bison gettext git gperf libgl1-mesa-dev libglib2.0-dev \
+    libpng-dev libpthread-stubs0-dev libsodium-dev libtool-bin libudev-dev libusb-1.0-0-dev mesa-common-dev \
+    pkg-config python wget xutils-dev libxext-dev libx11-xcb-dev libssl-dev
 
 RUN git clone -b xorgproto-2020.1 --depth 1 https://gitlab.freedesktop.org/xorg/proto/xorgproto && \
     cd xorgproto && \
@@ -161,7 +158,7 @@ RUN git clone -b release-64-2 --depth 1 https://github.com/unicode-org/icu && \
     make -j$THREADS install && \
     rm -rf $(pwd)
 
-RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.80.0/source/boost_1_80_0.tar.gz && \
+RUN wget https://archives.boost.io/release/1.80.0/source/boost_1_80_0.tar.gz && \
     echo "4b2136f98bdd1f5857f1c3dea9ac2018effe65286cf251534b6ae20cc45e1847 boost_1_80_0.tar.gz" | sha256sum -c && \
     tar -xzf boost_1_80_0.tar.gz && \
     rm boost_1_80_0.tar.gz && \

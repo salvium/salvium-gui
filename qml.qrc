@@ -24,7 +24,9 @@
         <file>pages/Advanced.qml</file>
         <file>pages/Transfer.qml</file>
         <file>pages/Staking.qml</file>
+        <file>pages/Audit.qml</file>
         <file>pages/Yield.qml</file>
+        <file>pages/CreateToken.qml</file>
         <file>pages/History.qml</file>
         <file>pages/AddressBook.qml</file>
         <file>pages/Mining.qml</file>
@@ -66,7 +68,7 @@
         <file>lang/flags/cz.png</file>
         <file>lang/flags/dk.png</file>
         <file>lang/flags/eg.png</file>
-        <file>lang/flags/esperanto.png</file>
+        <file>lang/flags/eo.png</file>
         <file>lang/flags/fi.png</file>
         <file>lang/flags/fr.png</file>
         <file>lang/flags/de.png</file>
@@ -283,7 +285,9 @@
         <file>images/ledgerNanoS.png</file>
         <file>images/ledgerNanoSPlus.png</file>
         <file>images/ledgerNanoX.png</file>
+        <file>images/ledgerNanoGen5.png</file>
         <file>images/ledgerStax.png</file>
+        <file>images/ledgerFlex.png</file>
         <file>images/trezor3.png</file>
         <file>images/trezorT.png</file>
         <file>images/trezorT@2x.png</file>

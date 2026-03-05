@@ -2568,8 +2568,8 @@ Si desea que se implemente esta función, comuníquese con el equipo.</translati
     </message>
     <message>
         <location filename="pages/Sign.qml" line="341"/>
-        <source>Enter the Salvium Address (example: SaLvD...)</source>
-        <translation>Introduzca la dirección de Salvium (ejemplo: SaLvD...)</translation>
+        <source>Enter the Salvium Address (example: SC1...)</source>
+        <translation>Introduzca la dirección de Salvium (ejemplo: SC1...)</translation>
     </message>
     <message>
         <location filename="pages/Sign.qml" line="351"/>

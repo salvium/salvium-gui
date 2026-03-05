@@ -85,6 +85,7 @@ public:
     QString label() const;
     quint64 confirmations() const;
     quint64 unlockTime() const;
+    QString asset() const;
     //! transaction_id
     QString hash() const;
     QDateTime timestamp() const;
@@ -111,6 +112,7 @@ private:
     QString m_label;
     QString m_paymentId;
     QString m_description;
+    QString m_asset;
     bool m_pending;
     bool m_coinbase;
     quint32 m_subaddrAccount;

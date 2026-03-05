@@ -32,10 +32,7 @@ Rectangle {
     signal stakingClicked()
     signal createTokenClicked()
     signal transferClicked()
-<<<<<<< Updated upstream
-=======
   //  signal auditClicked()
->>>>>>> Stashed changes
     signal receiveClicked()
     signal advancedClicked()
     signal settingsClicked()
@@ -287,16 +284,6 @@ Rectangle {
                     themeTransition: false
                 }
 
-<<<<<<< Updated upstream
-                MoneroComponents.TextPlain {
-                    id: currencyLabel
-                    font.pixelSize: 16
-                    text: {
-                        if (persistentSettings.fiatPriceEnabled && persistentSettings.fiatPriceToggle) {
-                            return appWindow.fiatApiCurrencySymbol();
-                        } else {
-                            return "SAL"
-=======
                 Item {
                     id: balanceRow
                     anchors.left: cardContainer.left
@@ -342,7 +329,6 @@ Rectangle {
                                     clipboard.setText(balancePart1.text + balancePart2.text);
                                     appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
                             }
->>>>>>> Stashed changes
                         }
                     }
                     MoneroComponents.TextPlain {
@@ -647,178 +633,6 @@ Rectangle {
                 height: 48
             }
 
-<<<<<<< Updated upstream
-            // ------------- AddressBook tab ---------------
-
-            MoneroComponents.MenuButton {
-                id: addressBookButton
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: qsTr("Address book") + translationManager.emptyString
-                symbol: (isMac ? "⌃" : qsTr("Ctrl+")) + "B" + translationManager.emptyString
-                under: transferButton
-                onClicked: {
-                    parent.previousButton.checked = false
-                    parent.previousButton = addressBookButton
-                    panel.addressBookClicked()
-                }
-            }
-
-            MoneroComponents.MenuButtonDivider {
-                visible: addressBookButton.present
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 20
-            }
-
-            // ------------- Receive tab ---------------
-            MoneroComponents.MenuButton {
-                id: receiveButton
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: qsTr("Receive") + translationManager.emptyString
-                symbol: (isMac ? "⌃" : qsTr("Ctrl+")) + "R" + translationManager.emptyString
-                onClicked: {
-                    parent.previousButton.checked = false
-                    parent.previousButton = receiveButton
-                    panel.receiveClicked()
-                }
-            }
-
-            MoneroComponents.MenuButtonDivider {
-                visible: receiveButton.present
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 20
-            }
-
-            // ------------- Staking tab ---------------
-
-            MoneroComponents.MenuButton {
-                id: stakingButton
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: qsTr("Staking") + translationManager.emptyString
-                symbol: (isMac ? "⌃" : qsTr("Ctrl+")) + "K" + translationManager.emptyString
-                onClicked: {
-                    parent.previousButton.checked = false
-                    parent.previousButton = stakingButton
-                    panel.stakingClicked()
-                }
-                enabled: currentAccountIndex == 0
-                visible: currentAccountIndex == 0
-            }
-
-            MoneroComponents.MenuButtonDivider {
-                visible: stakingButton.visible
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 20
-            }
-
-            // ------------- Yield tab ---------------
-
-            MoneroComponents.MenuButton {
-                id: yieldButton
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: qsTr("Yield Info") + translationManager.emptyString
-                symbol: (isMac ? "⌃" : qsTr("Ctrl+")) + "Y" + translationManager.emptyString
-                under: stakingButton
-                onClicked: {
-                    parent.previousButton.checked = false
-                    parent.previousButton = yieldButton
-                    panel.yieldClicked()
-                }
-            }
-
-            MoneroComponents.MenuButtonDivider {
-                visible: yieldButton.present
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 20
-            }
-
-            // ------------- History tab ---------------
-
-            MoneroComponents.MenuButton {
-                id: historyButton
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: qsTr("Transactions") + translationManager.emptyString
-                symbol: (isMac ? "⌃" : qsTr("Ctrl+")) + "H" + translationManager.emptyString
-                onClicked: {
-                    parent.previousButton.checked = false
-                    parent.previousButton = historyButton
-                    panel.historyClicked()
-                }
-            }
-
-            MoneroComponents.MenuButtonDivider {
-                visible: historyButton.present
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 20
-            }
-
-            // ------------- Advanced tab ---------------
-            MoneroComponents.MenuButton {
-                id: advancedButton
-                visible: appWindow.walletMode >= 2
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: qsTr("Advanced") + translationManager.emptyString
-                symbol: (isMac ? "⌃" : qsTr("Ctrl+")) + "D" + translationManager.emptyString
-                onClicked: {
-                    parent.previousButton.checked = false
-                    parent.previousButton = advancedButton
-                    panel.advancedClicked()
-                }
-            }
-
-            MoneroComponents.MenuButtonDivider {
-                visible: advancedButton.present && appWindow.walletMode >= 2
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 20
-            }
-
-            // ------------- Settings tab ---------------
-            MoneroComponents.MenuButton {
-                id: settingsButton
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: qsTr("Settings") + translationManager.emptyString
-                symbol: (isMac ? "⌃" : qsTr("Ctrl+")) + "E" + translationManager.emptyString
-                onClicked: {
-                    parent.previousButton.checked = false
-                    parent.previousButton = settingsButton
-                    panel.settingsClicked()
-                }
-            }
-
-            MoneroComponents.MenuButtonDivider {
-                visible: settingsButton.present
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 20
-            }
-
-        } // Column
-
-        } // Flickable
-
-        Rectangle {
-            id: separator
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: 0
-            anchors.rightMargin: 0
-            anchors.bottom: progressBar.visible ? progressBar.top : networkStatus.top
-            height: 10
-            color: "transparent"
-=======
->>>>>>> Stashed changes
         }
 
     }

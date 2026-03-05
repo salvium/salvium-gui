@@ -42,8 +42,10 @@ public:
         SubaddressAccountRole = Qt::UserRole + 1, // for the SubaddressAccountRow object;
         SubaddressAccountAddressRole,
         SubaddressAccountLabelRole,
-        SubaddressAccountBalanceRole,
-        SubaddressAccountUnlockedBalanceRole,
+        SubaddressAccountSALBalanceRole,
+        SubaddressAccountSAL1BalanceRole,
+        SubaddressAccountSALUnlockedBalanceRole,
+        SubaddressAccountSAL1UnlockedBalanceRole,
     };
     Q_ENUM(SubaddressAccountRowRole)
 
