@@ -86,7 +86,89 @@ Rectangle {
                 Layout.fillWidth: true
                 fontSize: 24
                 textFormat: Text.RichText
+<<<<<<< Updated upstream
                 text: qsTr("Balance All") + translationManager.emptyString
+=======
+                text: qsTr("Balance (SAL1) ") + translationManager.emptyString
+            }
+
+            RowLayout {
+                Layout.topMargin: 22
+
+                MoneroComponents.TextPlain {
+                    text: qsTr("Total balance: ") + translationManager.emptyString
+                    Layout.fillWidth: true
+                    color: MoneroComponents.Style.defaultFontColor
+                    font.pixelSize: 16
+                    font.family: MoneroComponents.Style.fontRegular.name
+                    themeTransition: false
+                }
+
+                MoneroComponents.TextPlain {
+                    id: balanceAllSAL1
+                    Layout.rightMargin: 87
+                    font.family: MoneroComponents.Style.fontMonoRegular.name;
+                    font.pixelSize: 16
+                    color: MoneroComponents.Style.defaultFontColor
+
+                    MouseArea {
+                        hoverEnabled: true
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.color = MoneroComponents.Style.orange
+                        onExited: parent.color = MoneroComponents.Style.defaultFontColor
+                        onClicked: {
+                            console.log("Copied to clipboard");
+                            var balanceAllNumberOnly = parent.text.slice(0, -4);
+                            clipboard.setText(balanceAllNumberOnly);
+                            appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
+                        }
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.topMargin: 10
+
+                MoneroComponents.TextPlain {
+                    text: qsTr("Total unlocked balance: ") + translationManager.emptyString
+                    Layout.fillWidth: true
+                    color: MoneroComponents.Style.defaultFontColor
+                    font.pixelSize: 16
+                    font.family: MoneroComponents.Style.fontRegular.name
+                    themeTransition: false
+                }
+
+                MoneroComponents.TextPlain {
+                    id: unlockedBalanceAllSAL1
+                    Layout.rightMargin: 87
+                    font.family: MoneroComponents.Style.fontMonoRegular.name;
+                    font.pixelSize: 16
+                    color: MoneroComponents.Style.defaultFontColor
+
+                    MouseArea {
+                        hoverEnabled: true
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onEntered: parent.color = MoneroComponents.Style.orange
+                        onExited: parent.color = MoneroComponents.Style.defaultFontColor
+                        onClicked: {
+                            console.log("Copied to clipboard");
+                            var unlockedBalanceAllNumberOnly = parent.text.slice(0, -4);
+                            clipboard.setText(unlockedBalanceAllNumberOnly);
+                            appWindow.showStatusMessage(qsTr("Copied to clipboard"),3)
+                        }
+                    }
+                }
+            }
+
+            MoneroComponents.LabelSubheader {
+                Layout.fillWidth: true
+                Layout.topMargin: 22
+                fontSize: 24
+                textFormat: Text.RichText
+                text: qsTr("Balance") + " (" + appWindow.persistentSettings.assetType + ")" + translationManager.emptyString
+>>>>>>> Stashed changes
             }
 
             RowLayout {
@@ -299,6 +381,7 @@ Rectangle {
                                 themeTransition: false
                             }
 
+<<<<<<< Updated upstream
                             MoneroComponents.Label {
                                 id: balanceNumberLabel
                                 color: MoneroComponents.Style.defaultFontColor
@@ -311,6 +394,70 @@ Rectangle {
                                 elide: Text.ElideRight
                                 textWidth: 180
                                 themeTransition: false
+=======
+                                    MoneroComponents.Label {
+                                        id: nameLabel
+                                        Layout.fillWidth: true
+                                        Layout.minimumWidth: 30
+                                        Layout.leftMargin: 12
+                                        color: index === currentAccountIndex ? MoneroComponents.Style.defaultFontColor : MoneroComponents.Style.dimmedFontColor
+                                        fontSize: 16 
+                                        text: label
+                                        elide: Text.ElideRight
+                                        themeTransition: false
+                                    }
+
+                                    MoneroComponents.Label {
+                                        id: balanceNumberLabel
+                                        color: MoneroComponents.Style.defaultFontColor
+                                        Layout.alignment: Qt.AlignRight
+                                        Layout.rightMargin: 10
+                                        Layout.minimumWidth: 120
+                                        fontSize: 16
+                                        fontFamily: MoneroComponents.Style.fontMonoRegular.name
+                                        text: balanceSAL1 + " SAL1"
+                                        elide: Text.ElideRight
+                                        themeTransition: false
+                                    }
+                                }
+
+                                // Second row
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 30
+                                    Layout.leftMargin: 26
+
+                                    MoneroComponents.Label {
+                                        id: addressLabel
+                                        color: MoneroComponents.Style.defaultFontColor
+                                        Layout.alignment: Qt.AlignLeft
+                                        Layout.leftMargin: 10
+                                        Layout.minimumWidth: 120
+                                        fontSize: 16
+                                        fontFamily: MoneroComponents.Style.fontMonoRegular.name
+                                        text: TxUtils.addressTruncatePretty(address, mainLayout.width < 400 ? 1 : (mainLayout.width < 740 ? 2 : (mainLayout.width < 900 ? 3 : 4)))
+                                        themeTransition: false
+                                    }
+
+                                    // push the balance to the right
+                                    Item {
+                                        Layout.fillWidth: true 
+                                    }
+
+                                    MoneroComponents.Label {
+                                        id: balanceNumberLabelSAL
+                                        color: MoneroComponents.Style.defaultFontColor
+                                        Layout.alignment: Qt.AlignRight
+                                        Layout.rightMargin: 10
+                                        Layout.minimumWidth: 120
+                                        fontSize: 16
+                                        fontFamily: MoneroComponents.Style.fontMonoRegular.name
+                                        text: balanceSAL + " " + appWindow.persistentSettings.assetType
+                                        elide: Text.ElideRight
+                                        themeTransition: false
+                                    }
+                                }
+>>>>>>> Stashed changes
                             }
 
                             MouseArea {
@@ -392,12 +539,22 @@ Rectangle {
     function onPageCompleted() {
         console.log("account");
         if (appWindow.currentWallet !== undefined) {
-            appWindow.currentWallet.subaddressAccount.refresh();
+            var assetType = appWindow.persistentSettings.assetType;
+            appWindow.currentWallet.subaddressAccount.refresh(assetType);
             subaddressAccountListView.model = appWindow.currentWallet.subaddressAccountModel;
             appWindow.currentWallet.subaddress.refresh(appWindow.currentWallet.currentSubaddressAccount)
 
+<<<<<<< Updated upstream
             balanceAll.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll()) + " SAL"
             unlockedBalanceAll.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll()) + " SAL"
+=======
+            console.log("Token amount = " + walletManager.displayAmount(appWindow.currentWallet.balanceAll(assetType)));
+    
+            balanceAllSAL1.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll("SAL1")) + " SAL1"
+            unlockedBalanceAllSAL1.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll("SAL1")) + " SAL1"
+            balanceAll.text = walletManager.displayAmount(appWindow.currentWallet.balanceAll(assetType)) + " " + assetType
+            unlockedBalanceAll.text = walletManager.displayAmount(appWindow.currentWallet.unlockedBalanceAll(assetType)) + " " + assetType
+>>>>>>> Stashed changes
         }
     }
 

@@ -1461,7 +1461,6 @@ Rectangle {
         var txs = [];
         for (var i = 0; i < root.txData.length; i++){
             var item = root.txData[i];
-            var matched = "";
 
             // daterange filtering
             if(item.timestamp < fromDate || item.timestamp > toDate){
@@ -1563,6 +1562,7 @@ Rectangle {
     function updateTransactionsFromModel() {
         // This function copies the items of `appWindow.currentWallet.historyModel` to `root.txModelData`, as a list of javascript objects
         if(currentWallet == null || typeof currentWallet.history === "undefined" ) return;
+        if(currentWallet.isBackgroundSyncing()) return;
 
         var _model = root.model;
         var total = 0

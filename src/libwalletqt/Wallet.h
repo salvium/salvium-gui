@@ -92,6 +92,7 @@ class Wallet : public QObject, public PassprasePrompter
     Q_PROPERTY(QString daemonLogPath READ getDaemonLogPath CONSTANT)
     Q_PROPERTY(QString proxyAddress READ getProxyAddress WRITE setProxyAddress NOTIFY proxyAddressChanged)
     Q_PROPERTY(quint64 walletCreationHeight READ getWalletCreationHeight WRITE setWalletCreationHeight NOTIFY walletCreationHeightChanged)
+    Q_PROPERTY(QStringList assetTypes READ assetTypes NOTIFY assetTypesChanged)
 
 public:
 
@@ -112,6 +113,14 @@ public:
     };
 
     Q_ENUM(ConnectionStatus)
+
+    enum BackgroundSyncType {
+        BackgroundSync_Off            = Monero::Wallet::BackgroundSync_Off,
+        BackgroundSync_ReusePassword  = Monero::Wallet::BackgroundSync_ReusePassword,
+        BackgroundSync_CustomPassword = Monero::Wallet::BackgroundSync_CustomPassword
+    };
+
+    Q_ENUM(BackgroundSyncType)
 
     //! returns mnemonic seed
     QString getSeed() const;
@@ -216,6 +225,17 @@ public:
     //! scan transactions
     Q_INVOKABLE bool scanTransactions(const QVector<QString> &txids);
 
+    Q_INVOKABLE void setupBackgroundSync(const BackgroundSyncType background_sync_type, const QString &wallet_password);
+    Q_INVOKABLE BackgroundSyncType getBackgroundSyncType() const;
+    Q_INVOKABLE bool isBackgroundWallet() const;
+    Q_INVOKABLE bool isBackgroundSyncing() const;
+
+    //! scan in the background with just the view key (wipe the spend key)
+    Q_INVOKABLE void startBackgroundSync();
+
+    //! bring the spend key back and process background synced txs
+    Q_INVOKABLE void stopBackgroundSync(const QString &password);
+
     //! refreshes the wallet
     Q_INVOKABLE bool refresh(bool historyAndSubaddresses = true);
 
@@ -227,22 +247,46 @@ public:
     Q_INVOKABLE void createStakeTransactionAsync(const QString &amount,
         quint32 mixin_count,
         PendingTransaction::Priority priority);
+<<<<<<< Updated upstream
+=======
+
+    // create token transaction
+    Q_INVOKABLE void createCreateTokenTransactionAsync(const QString &asset_type,
+        const QString &supply,
+        const QString &metadata,
+        const QString &name,
+        const quint32 size,
+        const QString &hash,
+        const QString &url);
+
+    // audit transaction
+    Q_INVOKABLE void createAuditTransactionAsync(
+        quint32 mixin_count,
+        PendingTransaction::Priority priority
+    );
+>>>>>>> Stashed changes
   
     //! creates async transaction
-    Q_INVOKABLE void createTransactionAsync(
-        const QVector<QString> &destinationAddresses,
-        const QString &payment_id,
-        const QVector<QString> &destinationAmounts,
-        quint32 mixin_count,
-        PendingTransaction::Priority priority);
+    Q_INVOKABLE void createTransactionAsync(const QVector<QString> &destinationAddresses,
+                                            const QString &asset_type,
+                                            const QString &payment_id,
+                                            const QVector<QString> &destinationAmounts,
+                                            quint32 mixin_count,
+                                            PendingTransaction::Priority priority);
 
     //! creates transaction with all outputs
-    Q_INVOKABLE PendingTransaction * createTransactionAll(const QString &dst_addr, const QString &payment_id,
-                                                       quint32 mixin_count, PendingTransaction::Priority priority);
+    Q_INVOKABLE PendingTransaction * createTransactionAll(const QString &dst_addr,
+                                                          const QString &asset_type,
+                                                          const QString &payment_id,
+                                                          quint32 mixin_count,
+                                                          PendingTransaction::Priority priority);
 
     //! creates async transaction with all outputs
-    Q_INVOKABLE void createTransactionAllAsync(const QString &dst_addr, const QString &payment_id,
-                                               quint32 mixin_count, PendingTransaction::Priority priority);
+    Q_INVOKABLE void createTransactionAllAsync(const QString &dst_addr,
+                                               const QString &asset_type,
+                                               const QString &payment_id,
+                                               quint32 mixin_count,
+                                               PendingTransaction::Priority priority);
 
     //! creates sweep unmixable transaction
     Q_INVOKABLE PendingTransaction * createSweepUnmixableTransaction();
@@ -363,6 +407,11 @@ public:
 
     Q_INVOKABLE YieldInfo * getYieldInfo();
 
+    Q_INVOKABLE QStringList getAssetTypes();
+
+    // new property getter
+    QStringList assetTypes() const;
+  
     // TODO: setListenter() when it implemented in API
 signals:
     // emitted on every event happened with wallet
@@ -377,6 +426,9 @@ signals:
     void moneyReceived(const QString &txId, quint64 amount);
     void unconfirmedMoneyReceived(const QString &txId, quint64 amount);
     void newBlock(quint64 height, quint64 targetHeight);
+    void backgroundSyncSetup() const;
+    void backgroundSyncStarted() const;
+    void backgroundSyncStopped() const;
     void addressBookChanged() const;
     void historyModelChanged() const;
     void walletCreationHeightChanged();
@@ -394,6 +446,7 @@ signals:
     void transactionCreated(
         PendingTransaction *transaction,
         const QVector<QString> &addresses,
+        const QString &asset_type,
         const QString &paymentId,
         quint32 mixinCount);
 
@@ -403,6 +456,8 @@ signals:
     void proxyAddressChanged() const;
     void refreshingChanged() const;
 
+    void assetTypesChanged();
+  
 private:
     Wallet(QObject * parent = nullptr);
     Wallet(Monero::Wallet *w, QObject * parent = 0);
@@ -432,8 +487,25 @@ private:
         quint32 mixin_count,
         PendingTransaction::Priority priority);
 
+<<<<<<< Updated upstream
+=======
+    PendingTransaction *createCreateTokenTransaction(const QString &asset_type,
+        const QString &supply,
+        const QString &metadata,
+        const QString &name,
+        const quint32 size,
+        const QString &hash,
+        const QString &url);
+
+    PendingTransaction *createAuditTransaction(
+        quint32 mixin_count,
+        PendingTransaction::Priority priority
+    );
+
+>>>>>>> Stashed changes
     PendingTransaction *createTransaction(
         const QVector<QString> &destinationAddresses,
+        const QString &asset_type,
         const QString &payment_id,
         const QVector<QString> &destinationAmounts,
         quint32 mixin_count,
@@ -446,6 +518,7 @@ private:
     QString getProxyAddress() const;
     void setProxyAddress(QString address);
     void startRefreshThread();
+    void updateAssetTypesCache(bool force = false);
   
 private:
     friend class WalletManager;
@@ -488,6 +561,8 @@ private:
     std::atomic<bool> m_refreshing;
     WalletListenerImpl *m_walletListener;
     FutureScheduler m_scheduler;
+
+    QStringList m_assetTypes;
 };
 
 

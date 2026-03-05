@@ -1,0 +1,34 @@
+name: Build Salvium GUI for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          
+      - name: Build Docker Image
+        run: |
+          docker build --tag salvium:build-env-windows \
+                       --build-arg THREADS=$(nproc) \
+                       -f Dockerfile.windows .
+      - name: Compile Salvium GUI
+        run: |
+          docker run --rm --user $(id -u):$(id -g) \
+          -v "${{ github.workspace }}":/salvium-gui \
+          -w /salvium-gui salvium:build-env-windows \
+          sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j$(nproc)'
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: salvium-gui-windows
+          path: build/

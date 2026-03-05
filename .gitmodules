@@ -4,3 +4,4 @@
 [submodule "salvium"]
 	path = salvium
 	url = https://github.com/salvium/salvium
+	branch = main

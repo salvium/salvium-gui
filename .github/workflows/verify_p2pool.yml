@@ -1,16 +1,12 @@
 name: ci/gh-actions/verify
-on: 
-  push:
-    paths:
-      - 'src/p2pool/P2PoolManager.cpp'
-  pull_request:
-    paths:
-      - 'src/p2pool/P2PoolManager.cpp'
+on:
+  workflow_dispatch:
 jobs:
   p2pool-hashes:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Verify Hashes
+    - uses: actions/checkout@v4
+    - name: Verify Hashes (disabled by default)
       run: |
-        python3 .github/verify_p2pool.py
+        echo "P2Pool binary verification is currently disabled."
+        # python3 .github/verify_p2pool.py

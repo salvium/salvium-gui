@@ -404,7 +404,8 @@ Rectangle {
                     appWindow.showStatusMessage(qsTr("Copied to clipboard"), 3);
                 }
             }
-
+/*
+ // new donation address required
             MoneroComponents.StandardButton {
                 small: true
                 text: qsTr("Donate to Salvium") + translationManager.emptyString
@@ -412,6 +413,7 @@ Rectangle {
                     middlePanel.sendTo("SaLvdZR6w1A21sf2Wh6jYEh1wzY4GSbT7RX6FjyPsnLsffWLrzFQeXUXJcmBLRWDzZC2YXeYe5t7qKsnrg9FpmxmEcxPHsEYfqA", "", qsTr("Donation to Salvium Core Team") + translationManager.emptyString);
                 }
             }
+            */
         }
     }
 }

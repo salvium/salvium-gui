@@ -100,6 +100,8 @@ ApplicationWindow {
     property string prevSplashText;
     property bool splashDisplayedBeforeButtonRequest;
     property bool themeTransition: false
+    property int backgroundSyncType: Wallet.BackgroundSync_Off;
+    property bool isQuitting: false
 
     // fiat price conversion
     property real fiatPrice: 0
@@ -126,6 +128,12 @@ ApplicationWindow {
     }
 
     function lock() {
+        if (currentWallet && currentWallet.getBackgroundSyncType() != Wallet.BackgroundSync_Off) {
+            appWindow.showProcessingSplash(qsTr("Locking..."));
+            currentWallet.startBackgroundSync()
+            return;
+        }
+
         passwordDialog.onRejectedCallback = function() { appWindow.showWizard(); }
         passwordDialog.onAcceptedCallback = function() {
             if(walletPassword === passwordDialog.password)
@@ -276,6 +284,15 @@ ApplicationWindow {
             persistentSettings.kdfRounds);
     }
 
+    function gracefulQuit() {
+        if (isQuitting)
+            return;
+        isQuitting = true;
+        closeWallet(function() {
+            Qt.quit();
+        })
+    }
+
     function closeWallet(callback) {
 
         // Disconnect all listeners
@@ -289,6 +306,9 @@ ApplicationWindow {
         currentWallet.heightRefreshed.disconnect(onHeightRefreshed);
         currentWallet.refreshed.disconnect(onWalletRefresh)
         currentWallet.updated.disconnect(onWalletUpdate)
+        currentWallet.backgroundSyncSetup.disconnect(onBackgroundSyncSetup)
+        currentWallet.backgroundSyncStarted.disconnect(onBackgroundSyncStarted)
+        currentWallet.backgroundSyncStopped.disconnect(onBackgroundSyncStopped)
         currentWallet.newBlock.disconnect(onWalletNewBlock)
         currentWallet.moneySpent.disconnect(onWalletMoneySent)
         currentWallet.moneyReceived.disconnect(onWalletMoneyReceived)
@@ -301,8 +321,14 @@ ApplicationWindow {
         currentWallet.walletPassphraseNeeded.disconnect(onWalletPassphraseNeededWallet);
         currentWallet.transactionCommitted.disconnect(onTransactionCommitted);
         currentWallet.currentSubaddressAccountChanged.disconnect(handleAccountChanged);
+        currentWallet.assetTypesChanged.disconnect(onAssetTypesChanged);
         middlePanel.paymentClicked.disconnect(handlePayment);
         middlePanel.stakeClicked.disconnect(handleStake);
+<<<<<<< Updated upstream
+=======
+        middlePanel.createTokenClicked.disconnect(handleCreateToken);
+        middlePanel.auditClicked.disconnect(handleAudit);
+>>>>>>> Stashed changes
         middlePanel.sweepUnmixableClicked.disconnect(handleSweepUnmixable);
         middlePanel.getProofClicked.disconnect(handleGetProof);
         middlePanel.checkProofClicked.disconnect(handleCheckProof);
@@ -328,6 +354,7 @@ ApplicationWindow {
         walletName = usefulName(wallet.path)
 
         viewOnly = currentWallet.viewOnly;
+        backgroundSyncType = currentWallet.getBackgroundSyncType();
 
         // New wallets saves the testnet flag in keys file.
         if(persistentSettings.nettype != currentWallet.nettype) {
@@ -339,6 +366,9 @@ ApplicationWindow {
         currentWallet.heightRefreshed.connect(onHeightRefreshed);
         currentWallet.refreshed.connect(onWalletRefresh)
         currentWallet.updated.connect(onWalletUpdate)
+        currentWallet.backgroundSyncSetup.connect(onBackgroundSyncSetup)
+        currentWallet.backgroundSyncStarted.connect(onBackgroundSyncStarted)
+        currentWallet.backgroundSyncStopped.connect(onBackgroundSyncStopped)
         currentWallet.newBlock.connect(onWalletNewBlock)
         currentWallet.moneySpent.connect(onWalletMoneySent)
         currentWallet.moneyReceived.connect(onWalletMoneyReceived)
@@ -353,8 +383,15 @@ ApplicationWindow {
         currentWallet.currentSubaddressAccountChanged.connect(handleAccountChanged);
         //currentWallet.stakeTransactionCommitted.connect(onStakeTransactionCommitted);
         currentWallet.proxyAddress = Qt.binding(persistentSettings.getWalletProxyAddress);
+        currentWallet.assetTypesChanged.connect(onAssetTypesChanged);
+        leftPanel.assetTypeChanged.connect(onSelectedAssetTypeChanged);
         middlePanel.paymentClicked.connect(handlePayment);
         middlePanel.stakeClicked.connect(handleStake);
+<<<<<<< Updated upstream
+=======
+        middlePanel.createTokenClicked.connect(handleCreateToken);
+        middlePanel.auditClicked.connect(handleAudit);
+>>>>>>> Stashed changes
         middlePanel.sweepUnmixableClicked.connect(handleSweepUnmixable);
         middlePanel.getProofClicked.connect(handleGetProof);
         middlePanel.checkProofClicked.connect(handleCheckProof);
@@ -384,6 +421,8 @@ ApplicationWindow {
 
         // save wallet keys in case wallet settings have been changed in the init
         currentWallet.setPassword(walletPassword);
+
+        leftPanel.setAssetTypes(currentWallet.assetTypes);
     }
 
     function isTrustedDaemon() {
@@ -401,7 +440,11 @@ ApplicationWindow {
         if(!currentWallet){
             return 0
         }
+<<<<<<< Updated upstream
         return currentWallet.unlockedBalance()
+=======
+        return currentWallet.unlockedBalance(persistentSettings.assetType)
+>>>>>>> Stashed changes
     }
 
     function updateBalance() {
@@ -411,8 +454,13 @@ ApplicationWindow {
         var balance = "?.??";
         var balanceU = "?.??";
         if(!hideBalanceForced && !persistentSettings.hideBalance){
+<<<<<<< Updated upstream
             balance = walletManager.displayAmount(currentWallet.balance());
             balanceU = walletManager.displayAmount(currentWallet.unlockedBalance());
+=======
+            balance = walletManager.displayAmount(currentWallet.balance(persistentSettings.assetType));
+            balanceU = walletManager.displayAmount(currentWallet.unlockedBalance(persistentSettings.assetType));
+>>>>>>> Stashed changes
         }
 
         if (persistentSettings.fiatPriceEnabled) {
@@ -552,6 +600,15 @@ ApplicationWindow {
             }
         }
 
+        // Don't allow opening background wallets in the GUI
+        if (wallet.isBackgroundWallet()) {
+            passwordDialog.onCancel();
+            appWindow.showStatusMessage(qsTr("Can't open background wallets in the GUI"),6);
+            console.log("closing background wallet");
+            closeWallet();
+            return;
+        }
+
         // wallet opened successfully, subscribing for wallet updates
         connectWallet(wallet)
 
@@ -593,7 +650,25 @@ ApplicationWindow {
         devicePassphraseDialog.open(on_device)
     }
 
-    function onWalletUpdate() {
+    function onAssetTypesChanged() {
+        if (!currentWallet)
+            return;
+        leftPanel.setAssetTypes(currentWallet.assetTypes); // Q_PROPERTY
+    }
+
+    function onSelectedAssetTypeChanged(t) {
+        console.log("asset type changed to " + t + " - updating " + middlePanel.state);
+        if (t !== "SAL1")
+            persistentSettings.fiatPriceEnabled = false;
+        if (middlePanel.state == "Account")
+            middlePanel.accountView.onPageCompleted();
+        else if (middlePanel.state == "History")
+            middlePanel.historyView.update();
+        updateBalance();
+        return;
+    }    
+    
+    function onWalletUpdate(stoppedBackgroundSync) {
         if (!currentWallet)
             return;
         /*
@@ -607,15 +682,73 @@ ApplicationWindow {
         */    
         console.log(">>> wallet updated")
         updateBalance();
-        // Update history if new block found since last update
-        if(foundNewBlock) {
+        // Update history if new block found since last update or background sync was just stopped
+        if(foundNewBlock || stoppedBackgroundSync) {
+            if (foundNewBlock)
+                console.log("New block found - updating history")
             foundNewBlock = false;
-            console.log("New block found - updating history")
             currentWallet.history.refresh(currentWallet.currentSubaddressAccount)
 
-            if(middlePanel.state == "History")
+            if (middlePanel.state == "Account")
+                middlePanel.accountView.onPageCompleted();
+            else if (middlePanel.state == "History")
                 middlePanel.historyView.update();
         }
+    }
+
+    function onBackgroundSyncSetup() {
+        console.log(">>> background sync setup");
+        hideProcessingSplash();
+        if (currentWallet.status !== Wallet.Status_Ok) {
+            console.error("Error setting up background sync: ", currentWallet.errorString);
+            appWindow.showStatusMessage(currentWallet.errorString, 5);
+            return;
+        }
+        appWindow.backgroundSyncType = currentWallet.getBackgroundSyncType();
+    }
+
+    function onBackgroundSyncStarted() {
+        console.log(">>> background sync started");
+        hideProcessingSplash();
+        var started = currentWallet.status === Wallet.Status_Ok;
+        if (!started) {
+            console.error("Error starting background sync: ", currentWallet.errorString);
+            appWindow.showStatusMessage(currentWallet.errorString, 5);
+        }
+
+        passwordDialog.onRejectedCallback = function() { appWindow.showWizard(); }
+        passwordDialog.onAcceptedCallback = function() {
+            if(walletPassword === passwordDialog.password) {
+                if (currentWallet && started) {
+                    appWindow.showProcessingSplash(qsTr("Unlocking..."));
+                    currentWallet.stopBackgroundSync(walletPassword);
+                } else {
+                    passwordDialog.close();
+                }
+            } else {
+                passwordDialog.showError(qsTr("Wrong password") + translationManager.emptyString);
+            }
+        }
+        passwordDialog.open(usefulName(persistentSettings.wallet_path), "", "", "", started);
+    }
+
+    function onBackgroundSyncStopped() {
+        console.log(">>> background sync stopped");
+        var stopped = currentWallet.status === Wallet.Status_Ok;
+        if (!stopped) {
+            hideProcessingSplash();
+            console.error("Error stopping background sync: ", currentWallet.errorString);
+
+            // If there is an error stopping background sync, the spend key
+            // won't be loaded and the wallet will be in a broken state. Don't
+            // let the user continue normal wallet operations in this state.
+            passwordDialog.showError(qsTr("Error stopping background sync: ") + currentWallet.errorString);
+            return;
+        }
+
+        onWalletUpdate(stopped);
+        hideProcessingSplash();
+        passwordDialog.close();
     }
 
     function connectRemoteNode() {
@@ -696,7 +829,7 @@ ApplicationWindow {
         // Update transfer page status
         middlePanel.updateStatus();
 
-        // Refresh is succesfull if blockchain height > 1
+        // Refresh is successful if blockchain height > 1
         if (bcHeight > 1){
             // recovering from seed is finished after first refresh
             if(persistentSettings.is_recovering) {
@@ -807,7 +940,7 @@ ApplicationWindow {
         currentWallet.history.refresh(currentWallet.currentSubaddressAccount) // this will refresh model
         currentWallet.subaddress.refresh(currentWallet.currentSubaddressAccount)
 
-        if(middlePanel.state == "History")
+        if (middlePanel.state == "History")
             middlePanel.historyView.update();
     }
 
@@ -871,7 +1004,7 @@ ApplicationWindow {
         }
     }
 
-    function onTransactionCreated(pendingTransaction, addresses, paymentId, mixinCount) {
+    function onTransactionCreated(pendingTransaction, addresses, asset_type, paymentId, mixinCount) {
         console.log("Transaction created");
         txConfirmationPopup.bottomText.text = "";
         transaction = pendingTransaction;
@@ -893,7 +1026,8 @@ ApplicationWindow {
             currentWallet.disposeTransaction(transaction);
         } else {
             console.log("Transaction created, amount: " + walletManager.displayAmount(transaction.amount)
-                    + ", fee: " + walletManager.displayAmount(transaction.fee));
+                        + " " + asset_type + ", fee: " + walletManager.displayAmount(transaction.fee)  + " SAL1");
+            console.log("TX COUNT = " + transaction.txCount);
 
             // here we update txConfirmationPopup
             txConfirmationPopup.transactionAmount = Utils.removeTrailingZeros(walletManager.displayAmount(transaction.amount));
@@ -936,7 +1070,7 @@ ApplicationWindow {
         txConfirmationPopup.open();
 
         if (recipientAll) {
-            currentWallet.createTransactionAllAsync(recipientAll.address, paymentId, mixinCount, priority);
+            currentWallet.createTransactionAllAsync(recipientAll.address, persistentSettings.assetType, paymentId, mixinCount, priority);
         } else {
             const addresses = recipients.map(function (recipient) {
                 return recipient.address;
@@ -944,7 +1078,8 @@ ApplicationWindow {
             const amountsxmr = recipients.map(function (recipient) {
                 return recipient.amount;
             });
-            currentWallet.createTransactionAsync(addresses, paymentId, amountsxmr, mixinCount, priority);
+            // CHECK HERE
+            currentWallet.createTransactionAsync(addresses, persistentSettings.assetType, paymentId, amountsxmr, mixinCount, priority);
         }
     }
 
@@ -978,6 +1113,41 @@ ApplicationWindow {
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    // called on "create_token"
+    function handleCreateToken(asset_type, supply, metadata, name, size, hash, url) {
+        console.log("Creating Create Token transaction: ")
+        console.log("\tamount: ", supply);
+
+        if (currentWallet.currentSubaddressAccount == 0) {
+    
+            txConfirmationPopup.createToken = true;
+            txConfirmationPopup.bottomTextAnimation.running = false;
+            txConfirmationPopup.bottomText.text  = qsTr("Creating token...") + translationManager.emptyString;
+            txConfirmationPopup.transactionAmount = "";
+            txConfirmationPopup.open();
+
+            currentWallet.createCreateTokenTransactionAsync(asset_type, supply, metadata, name, size, hash, url);
+        } else {
+
+            console.log("wibble");
+        }
+    }
+
+    function handleAudit(mixinCount, priority) {
+        console.log("Auditing account: ");
+
+        txConfirmationPopup.audit = true;
+        txConfirmationPopup.bottomTextAnimation.running = false;
+        txConfirmationPopup.bottomText.text  = qsTr("Creating AUDIT transaction...") + translationManager.emptyString;
+        txConfirmationPopup.transactionAmount = "(all)";
+        txConfirmationPopup.open();
+
+        currentWallet.createAuditTransactionAsync(mixinCount, priority);
+    }
+
+>>>>>>> Stashed changes
     //Choose where to save transaction
     FileDialog {
         id: saveTxDialog
@@ -1464,6 +1634,7 @@ ApplicationWindow {
 
         property bool askDesktopShortcut: isLinux
         property bool askStopLocalNode: true
+        property string assetType: 'SAL1'
         property string language: 'English (US)'
         property string language_wallet: 'English'
         property string locale: 'en_US'
@@ -1909,9 +2080,25 @@ ApplicationWindow {
                     middlePanel.flickable.contentY = 0;
                     updateBalance();
                 }
+<<<<<<< Updated upstream
 
+=======
+/*
+                onAuditClicked: {
+                    middlePanel.state = "Audit";
+                    middlePanel.flickable.contentY = 0;
+                    updateBalance();
+                }
+*/
+>>>>>>> Stashed changes
                 onYieldClicked: {
                     middlePanel.state = "Yield";
+                    middlePanel.flickable.contentY = 0;
+                    updateBalance();
+                }
+
+                onCreateTokenClicked: {
+                    middlePanel.state = "CreateToken";
                     middlePanel.flickable.contentY = 0;
                     updateBalance();
                 }
@@ -2349,6 +2536,20 @@ ApplicationWindow {
         var inactivity = Utils.epoch() - appWindow.userLastActive;
         if(inactivity < (persistentSettings.lockOnUserInActivityInterval * 60)) return;
 
+        if (inputDialogVisible) inputDialog.close()
+        remoteNodeDialog.close();
+        informationPopup.close()
+        txConfirmationPopup.close()
+        txConfirmationPopup.clearFields()
+        txConfirmationPopup.rejected()
+        successfulTxPopup.close();
+
+        if (currentWallet && currentWallet.getBackgroundSyncType() != Wallet.BackgroundSync_Off) {
+            appWindow.showProcessingSplash(qsTr("Locking..."));
+            currentWallet.startBackgroundSync()
+            return;
+        }
+
         passwordDialog.onAcceptedCallback = function() {
             if(walletPassword === passwordDialog.password){
                 passwordDialog.close();
@@ -2361,13 +2562,6 @@ ApplicationWindow {
         }
 
         passwordDialog.onRejectedCallback = function() { appWindow.showWizard(); }
-        if (inputDialogVisible) inputDialog.close()
-        remoteNodeDialog.close();
-        informationPopup.close()
-        txConfirmationPopup.close()
-        txConfirmationPopup.clearFields()
-        txConfirmationPopup.rejected()
-        successfulTxPopup.close();
         passwordDialog.open();
     }
 

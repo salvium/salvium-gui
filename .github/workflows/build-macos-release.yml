@@ -1,0 +1,254 @@
+name: Build macOS release with qt from src
+
+on:
+  workflow_dispatch:
+    inputs: # Add inputs for tag and release notes
+      tag_name:
+        description: 'The tag name for the release (e.g., v1.0.1)'
+        required: true
+      release_notes:
+        description: 'Release notes (supports Markdown)'
+        required: false
+        default: 'New release'
+  push:
+    branches: [ main ]
+
+jobs:
+  build-macos-app:
+    name: 1. Download Daemon & Build GUI App
+    runs-on: macos-latest
+    outputs:
+      daemon_path: ${{ steps.upload_daemon_artifact.outputs.artifact_path }}/salviumd
+    
+    # Environment variables for freeing disk and the Qt source build
+    env:
+      FREE_DISKSPACE: |
+        sudo rm -rf /usr/local/.ghcup /usr/share/dotnet /usr/share/swift /usr/share/miniconda
+      QT_TAG: v5.15.17-lts-lgpl
+      QT_PREFIX: ${{ github.workspace }}/qt-install
+
+    steps:
+      - name: Free up disk space
+        run: ${{ env.FREE_DISKSPACE }}
+
+      - name: Check out code (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Install download dependencies (jq)
+        run: brew install jq
+
+      - name: Get Latest Salvium Release Asset URL
+        id: get_asset_url
+        env:
+          GH_TOKEN: ${{ github.token }} # Add this env var
+        run: |
+          # Use GH_TOKEN for authentication
+          API_URL="https://api.github.com/repos/salvium/salvium/releases/latest"
+          echo "Fetching latest release data from $API_URL"
+          LATEST_RELEASE_JSON=$(curl -sL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.v3+json" "$API_URL")
+
+          # Check if curl returned valid JSON before proceeding
+          if ! echo "$LATEST_RELEASE_JSON" | jq empty; then
+            echo "Error: Failed to fetch valid JSON from GitHub API."
+            echo "API Response:"
+            echo "$LATEST_RELEASE_JSON"
+            exit 1
+          fi
+
+          echo "API Response received successfully."
+          # Find macOS ARM64 asset URL (supports both naming schemes)
+          ASSET_URL=$(echo "$LATEST_RELEASE_JSON" | jq -r '.assets[] | select(.name | endswith("macos-aarch64.zip") or endswith("macos-arm64.zip")) | .browser_download_url' | head -n 1)
+
+          if [ -z "$ASSET_URL" ] || [ "$ASSET_URL" == "null" ]; then
+            echo "Error: Could not find macOS ARM64 asset (macos-aarch64.zip or macos-arm64.zip) in the latest release JSON."
+            echo "Parsed JSON (only names):"
+            echo "$LATEST_RELEASE_JSON" | jq -r '.assets[].name' # Print asset names for debugging
+            exit 1
+          fi
+
+          echo "Found asset URL: $ASSET_URL"
+          echo "url=$ASSET_URL" >> $GITHUB_OUTPUT
+
+      - name: Create download directory
+        run: mkdir ./static-daemon-zip
+
+      - name: Download Salvium Release Zip
+        run: |
+          curl -L -o ./static-daemon-zip/salvium-macos.zip "${{ steps.get_asset_url.outputs.url }}"
+
+      - name: Create extract directory
+        run: mkdir ./static-daemon-extracted
+
+      - name: Unzip Daemon
+        run: |
+          unzip ./static-daemon-zip/salvium-macos.zip salviumd -d ./static-daemon-extracted
+          if [ ! -f ./static-daemon-extracted/salviumd ]; then
+            echo "Error: Failed to extract salviumd from the zip file."
+            unzip -l ./static-daemon-zip/salvium-macos.zip
+            exit 1
+          fi
+          echo "salviumd extracted successfully."
+
+      - name: Make Static Daemon Executable
+        run: chmod +x ./static-daemon-extracted/salviumd
+
+      - name: Upload Static Daemon Artifact (for next job)
+        id: upload_daemon_artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-salviumd-local
+          path: ./static-daemon-extracted/salviumd
+          retention-days: 1
+
+      - name: Install GUI build dependencies (Homebrew)
+        run: |
+          # Install all dependencies *except* qt@5
+          brew install boost@1.85 openssl@1.1 libsodium pkg-config cmake zeromq \
+                       hidapi libpgm miniupnpc expat libunwind-headers protobuf ccache unbound libgcrypt
+
+      - name: Clone qt repo
+        run: git clone -b "${{ env.QT_TAG }}" --recursive --depth 1 --shallow-submodules https://github.com/qt/qt5
+
+      - name: Build qt from source
+        run: |
+          cd qt5
+          mkdir build && cd build
+          # Configure Qt, skipping modules to speed up build (flags from Monero example)
+          ../configure -prefix "${{ env.QT_PREFIX }}" -opensource -confirm-license -release -nomake examples -nomake tests -no-rpath \
+                       -skip qtwebengine -skip qt3d -skip qtandroidextras -skip qtcanvas3d -skip qtcharts -skip qtconnectivity \
+                       -skip qtdatavis3d -skip qtdoc -skip qtgamepad -skip qtlocation -skip qtnetworkauth -skip qtpurchasing \
+                       -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtspeech \
+                       -skip qttools -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel -skip qtwebsockets \
+                       -skip qtwebview -skip qtwinextras -skip qtx11extras -skip gamepad -skip serialbus -skip location -skip webengine
+          
+          echo "--- Making Qt Base ---"
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+          
+          # Build lrelease (required by GUI)
+          echo "--- Building lrelease ---"
+          cd ../qttools/src/linguist/lrelease
+          ../../../../build/qtbase/bin/qmake # Use qmake from build dir
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+          
+          # Build macdeployqt (required by GUI)
+          echo "--- Building macdeployqt ---"
+          cd ../../../../qttools/src/macdeployqt/macdeployqt/
+          ../../../../build/qtbase/bin/qmake # Use qmake from build dir
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+
+      - name: Set up GUI build environment paths
+        run: |
+          # Point to the newly built Qt (from QT_PREFIX) and other brew dependencies
+          echo "CMAKE_PREFIX_PATH=${{ env.QT_PREFIX }}:/opt/homebrew/opt/openssl@1.1:/opt/homebrew/opt/boost@1.85:/opt/homebrew/opt/libsodium:/opt/homebrew/opt/miniupnpc:/opt/homebrew/opt/protobuf" >> $GITHUB_ENV
+          echo "${{ env.QT_PREFIX }}/bin" >> $GITHUB_PATH
+
+      - name: Configure CMake (GUI)
+        run: |
+          mkdir -p build/release
+          cd build/release
+          # This command remains unchanged, as it correctly uses the CMAKE_PREFIX_PATH from the environment
+          /opt/homebrew/bin/cmake -D CMAKE_BUILD_TYPE=Release \
+                -D DEV_MODE=OFF \
+                -D MANUAL_SUBMODULES=OFF \
+                -D CMAKE_POLICY_DEFAULT_CMP0074=NEW \
+                -D Boost_INCLUDE_DIR=/opt/homebrew/opt/boost@1.85/include \
+                -D Boost_LIBRARY_DIR=/opt/homebrew/opt/boost@1.85/lib \
+                -D CMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/opt/openssl@1.1/lib" \
+                -D CMAKE_CXX_FLAGS="-I/opt/homebrew/opt/boost@1.85/include" \
+                ../..
+        env:
+           CMAKE_PREFIX_PATH: ${{ env.CMAKE_PREFIX_PATH }}
+
+      - name: Build and Deploy (Make)
+        run: |
+          cd build/release
+          make -j$(sysctl -n hw.ncpu)
+          make deploy
+
+      - name: Upload GUI App Artifact (for next job)
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-bundle-local
+          path: build/release/bin/salvium-wallet-gui.app
+          retention-days: 1
+
+  bundle-macos-release:
+    name: 2. Create Final macOS DMG
+    runs-on: macos-latest
+    needs: build-macos-app
+
+    steps:
+      - name: Download Static Daemon
+        uses: actions/download-artifact@v4
+        with:
+          name: static-salviumd-local
+          path: ./static-daemon
+
+      - name: Download App Bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-app-bundle-local
+          path: ./salvium-wallet-gui.app
+
+      - name: Replace Daemon with Static Version
+        run: |
+          echo "Overwriting non-portable daemon with static version..."
+          cp ./static-daemon/salviumd ./salvium-wallet-gui.app/Contents/MacOS/salviumd
+          echo "Daemon replaced."
+      - name: Ensure GUI Executable has Execute Permissions
+        run: |
+          chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui
+          chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salviumd
+          echo "Execute permissions set on GUI binary."
+
+      - name: Create unsigned .dmg
+        run: |
+          hdiutil create -fs HFS+ -srcfolder ./salvium-wallet-gui.app -volname "salvium-gui" salvium-gui-unsigned.dmg
+
+      # Upload the final DMG for the release job
+      - name: Upload Final DMG Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-macos-dmg
+          path: salvium-gui-unsigned.dmg
+          retention-days: 1
+
+  # --- NEW JOB TO CREATE THE RELEASE ---
+  create-release:
+    name: 3. Create GitHub Release
+    runs-on: ubuntu-latest # Can run on Linux, just needs curl/gh cli
+    needs: bundle-macos-release # Depends on the DMG being created
+    # Only run this job if triggered manually via workflow_dispatch
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write # Need permission to create releases
+
+    steps:
+      - name: Download Final DMG
+        uses: actions/download-artifact@v4
+        with:
+          name: final-macos-dmg
+          path: ./release-assets
+
+      - name: Display structure
+        run: ls -R ./release-assets
+
+      - name: Create Release Notes File
+        env:
+          RELEASE_NOTES: ${{ github.event.inputs.release_notes }}
+        run: echo "$RELEASE_NOTES" > ./release-assets/release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          name: Release ${{ github.event.inputs.tag_name }}
+          body_path: ./release-assets/release_notes.md # Use the file with preserved formatting
+          draft: false
+          prerelease: false
+          files: ./release-assets/salvium-gui-unsigned.dmg # Attach only the DMG

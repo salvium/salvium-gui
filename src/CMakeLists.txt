@@ -121,6 +121,8 @@ if(APPLE)
     endif()
     find_package(ICU REQUIRED COMPONENTS data i18n uc)
     target_link_directories(salvium-wallet-gui PRIVATE ${ICU_ROOT}/lib)
+    # ScreenCaptureKit for macOS 14+ screenshot capture (weak link for backward compat)
+    target_link_libraries(salvium-wallet-gui "-weak_framework ScreenCaptureKit")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
