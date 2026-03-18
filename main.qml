@@ -1035,6 +1035,9 @@ ApplicationWindow {
                     ", priority: ", priority,
                     ", description: ", description);
 
+        // reset transaction type
+        txConfirmationPopup.clearFields();
+
         const recipientAll = recipients.find(function (recipient) {
             return recipient.amount == "(all)";
         });
@@ -1080,7 +1083,8 @@ ApplicationWindow {
         console.log("\tamount: ", amount);
 
         if (currentWallet.currentSubaddressAccount == 0) {
-    
+
+            txConfirmationPopup.clearFields();
             txConfirmationPopup.stake = true;
             txConfirmationPopup.bottomTextAnimation.running = false;
             txConfirmationPopup.bottomText.text  = qsTr("Creating STAKE transaction...") + translationManager.emptyString;
@@ -1100,7 +1104,9 @@ ApplicationWindow {
         console.log("\tamount: ", supply);
 
         if (currentWallet.currentSubaddressAccount == 0) {
-    
+
+            // reset transaction type
+            txConfirmationPopup.clearFields();
             txConfirmationPopup.createToken = true;
             txConfirmationPopup.bottomTextAnimation.running = false;
             txConfirmationPopup.bottomText.text  = qsTr("Creating token...") + translationManager.emptyString;
@@ -1117,6 +1123,8 @@ ApplicationWindow {
     function handleAudit(mixinCount, priority) {
         console.log("Auditing account: ");
 
+        // reset transaction type
+        txConfirmationPopup.clearFields();
         txConfirmationPopup.audit = true;
         txConfirmationPopup.bottomTextAnimation.running = false;
         txConfirmationPopup.bottomText.text  = qsTr("Creating AUDIT transaction...") + translationManager.emptyString;
@@ -1147,6 +1155,8 @@ ApplicationWindow {
     function handleSweepUnmixable() {
         console.log("Creating transaction: ")
 
+        // reset transaction type
+        txConfirmationPopup.clearFields();
         txConfirmationPopup.sweepUnmixable = true;
         transaction = currentWallet.createSweepUnmixableTransaction();
         if (transaction.status !== PendingTransaction.Status_Ok) {

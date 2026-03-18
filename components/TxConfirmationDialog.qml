@@ -217,7 +217,7 @@ Rectangle {
                     if (root.transactionAmount == "(all)" && currentWallet.isHwBacked() === true) {
                         return qsTr("All unlocked balance") +  translationManager.emptyString;
                     } else {
-                        return root.transactionAmount + " " + (root.createToken ? "SAL1" : (root.audit ? "SAL" : persistentSettings.assetType)) +  translationManager.emptyString;
+                        return root.transactionAmount + " " + (root.audit ? "SAL" : (root.createToken ? "SAL1" : persistentSettings.assetType)) + translationManager.emptyString;
                     }
                 }
             }
