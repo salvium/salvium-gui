@@ -21,6 +21,9 @@ Rectangle {
     property string balanceFiatString: "?.??"
     property string minutesToUnlock: ""
     property bool isSyncing: false
+    property bool isHF11: false
+    property bool isCarrot: false
+    property bool isAuditHF: false
     property alias networkStatus : networkStatus
     property alias progressBar : progressBar
     property alias daemonProgressBar : daemonProgressBar
@@ -537,8 +540,9 @@ Rectangle {
                     MoneroComponents.MenuButtonDivider { visible: stakingButton.present; anchors.left: parent.left; anchors.right: parent.right; anchors.leftMargin: 20 }
 
                     MoneroComponents.MenuButton {
-                        visible: false 
                         id: auditButton
+                        visible: isAuditHF
+                        enabled: isAuditHF
                         anchors.left: parent.left
                         anchors.right: parent.right
                         text: qsTr("Audit") + translationManager.emptyString
@@ -559,8 +563,8 @@ Rectangle {
                             selectButton(createTokenButton)
                             dispatchAction("CreateToken")
                         }
-                        enabled: currentAccountIndex == 0
-                        visible: currentAccountIndex == 0
+                        enabled: currentAccountIndex == 0 && isHF11
+                        visible: currentAccountIndex == 0 && isHF11
                     }
 
                     MoneroComponents.MenuButtonDivider { visible: createTokenButton.present; anchors.left: parent.left; anchors.right: parent.right; anchors.leftMargin: 20 }

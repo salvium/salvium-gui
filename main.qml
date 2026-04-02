@@ -322,6 +322,7 @@ ApplicationWindow {
         currentWallet.transactionCommitted.disconnect(onTransactionCommitted);
         currentWallet.currentSubaddressAccountChanged.disconnect(handleAccountChanged);
         currentWallet.assetTypesChanged.disconnect(onAssetTypesChanged);
+        currentWallet.isCarrotChanged.disconnect(onIsCarrotChanged);
         middlePanel.paymentClicked.disconnect(handlePayment);
         middlePanel.stakeClicked.disconnect(handleStake);
         middlePanel.createTokenClicked.disconnect(handleCreateToken);
@@ -381,6 +382,7 @@ ApplicationWindow {
         //currentWallet.stakeTransactionCommitted.connect(onStakeTransactionCommitted);
         currentWallet.proxyAddress = Qt.binding(persistentSettings.getWalletProxyAddress);
         currentWallet.assetTypesChanged.connect(onAssetTypesChanged);
+        currentWallet.isCarrotChanged.connect(onIsCarrotChanged);
         leftPanel.assetTypeChanged.connect(onSelectedAssetTypeChanged);
         middlePanel.paymentClicked.connect(handlePayment);
         middlePanel.stakeClicked.connect(handleStake);
@@ -637,6 +639,17 @@ ApplicationWindow {
         leftPanel.setAssetTypes(currentWallet.assetTypes); // Q_PROPERTY
     }
 
+    function onIsCarrotChanged() {
+        if (!currentWallet)
+            return;
+        console.log("Carrot HF status changed to: " + currentWallet.isCarrot);
+        leftPanel.isCarrot = currentWallet.isCarrot;
+        // refresh subaddress list (addresses change between carrot/cn format)
+        currentWallet.subaddress.refresh(currentWallet.currentSubaddressAccount);
+        // update displayed current_address
+        current_address = currentWallet.address(currentWallet.currentSubaddressAccount, current_subaddress_table_index);
+    }
+
     function onSelectedAssetTypeChanged(t) {
         console.log("asset type changed to " + t + " - updating " + middlePanel.state);
         if (t !== "SAL1")
@@ -663,6 +676,9 @@ ApplicationWindow {
         */    
         console.log(">>> wallet updated")
         updateBalance();
+        // Update displayed address in case hardfork status changed (e.g. after pop_blocks)
+        current_address = currentWallet.address(currentWallet.currentSubaddressAccount, current_subaddress_table_index);
+        currentWallet.subaddress.refresh(currentWallet.currentSubaddressAccount)
         // Update history if new block found since last update or background sync was just stopped
         if(foundNewBlock || stoppedBackgroundSync) {
             if (foundNewBlock)
@@ -807,6 +823,13 @@ ApplicationWindow {
 
         // Update wallet sync progress
         leftPanel.isSyncing = !disconnected && !daemonSynced;
+        // 
+        if (currentWallet && daemonSynced) {
+            leftPanel.isHF11 = currentWallet.useForkRules(11, 0);
+            leftPanel.isAuditHF = (currentWallet.useForkRules(6, 0) && !currentWallet.useForkRules(7, 0))
+                               || (currentWallet.useForkRules(8, 0) && !currentWallet.useForkRules(9, 0));
+            leftPanel.isCarrot = currentWallet.isCarrot;
+        }
         // Update transfer page status
         middlePanel.updateStatus();
 
@@ -2068,13 +2091,11 @@ ApplicationWindow {
                     middlePanel.flickable.contentY = 0;
                     updateBalance();
                 }
-/*
                 onAuditClicked: {
                     middlePanel.state = "Audit";
                     middlePanel.flickable.contentY = 0;
                     updateBalance();
                 }
-*/
                 onYieldClicked: {
                     middlePanel.state = "Yield";
                     middlePanel.flickable.contentY = 0;

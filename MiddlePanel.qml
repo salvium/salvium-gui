@@ -148,20 +148,16 @@ Rectangle {
                 name: "Yield"
                 PropertyChanges { target: root; currentView: yieldView }
                 PropertyChanges { target: mainFlickable; contentHeight: yieldView.contentHeight + 80 }
-            },State {
-                name: "Audit"
-                PropertyChanges { target: root; currentView: auditView }
-                PropertyChanges { target: mainFlickable; contentHeight: auditView.transferHeight1 + auditView.transferHeight2 + 80 }
             }, State {
                 name: "CreateToken"
                 PropertyChanges { target: root; currentView: createTokenView }
                 PropertyChanges { target: mainFlickable; contentHeight: createTokenView.createTokenHeight + 80 }
             },
-            // State {
-            //     name: "Audit"
-            //     PropertyChanges { target: root; currentView: auditView }
-            //     PropertyChanges { target: mainFlickable; contentHeight: auditView.transferHeight1 + auditView.transferHeight2 + 80 }
-            // },
+            State {
+                name: "Audit"
+                PropertyChanges { target: root; currentView: auditView }
+                PropertyChanges { target: mainFlickable; contentHeight: auditView.transferHeight1 + 80 } //check here
+            },
             State {
                 name: "Transfer"
                 PropertyChanges { target: root; currentView: transferView }

@@ -217,7 +217,7 @@ bool Wallet::setPassword(const QString &password)
 
 QString Wallet::address(quint32 accountIndex, quint32 addressIndex) const
 {
-    return QString::fromStdString(m_walletImpl->address(accountIndex, addressIndex));
+    return QString::fromStdString(m_walletImpl->address(accountIndex, addressIndex, m_isCarrot));
 }
 
 QString Wallet::path() const
@@ -307,6 +307,7 @@ void Wallet::initAsync(
             qDebug() << "init async finished: " + daemonAddress;
             connected(true);
             updateAssetTypesCache(true);
+            updateIsCarrotCache();
         }
         else
         {
@@ -613,6 +614,7 @@ bool Wallet::refresh(bool historyAndSubaddresses /* = true */)
         }
         if (result) {
             updateAssetTypesCache();
+            updateIsCarrotCache();
             emit updated();
         }
         return result;
@@ -724,6 +726,7 @@ void Wallet::createCreateTokenTransactionAsync(
         emit transactionCreated(tx, destinationAddresses, "SAL1", "", 0 /* mixin_count fix here */ );
     });
 }
+
 
 void Wallet::createAuditTransactionAsync(
     quint32 mixin_count,
@@ -1293,6 +1296,30 @@ QStringList Wallet::getAssetTypes()
 QStringList Wallet::assetTypes() const
 {
     return m_assetTypes;
+}
+
+bool Wallet::isCarrot() const
+{
+    return m_isCarrot;
+}
+
+void Wallet::updateIsCarrotCache()
+{
+    if (!m_walletImpl)
+        return;
+
+    bool wasCarrot = m_isCarrot;
+    try {
+        m_isCarrot = m_walletImpl->useForkRules(10, 0);
+    } catch (const std::exception &e) {
+        qDebug() << "updateIsCarrotCache: " << e.what();
+        m_isCarrot = false;
+    }
+
+    if (wasCarrot != m_isCarrot) {
+        qDebug() << "Carrot HF status changed:" << wasCarrot << "->" << m_isCarrot;
+        emit isCarrotChanged();
+    }
 }
 
 void Wallet::updateAssetTypesCache(bool force)

@@ -93,6 +93,7 @@ class Wallet : public QObject, public PassprasePrompter
     Q_PROPERTY(QString proxyAddress READ getProxyAddress WRITE setProxyAddress NOTIFY proxyAddressChanged)
     Q_PROPERTY(quint64 walletCreationHeight READ getWalletCreationHeight WRITE setWalletCreationHeight NOTIFY walletCreationHeightChanged)
     Q_PROPERTY(QStringList assetTypes READ assetTypes NOTIFY assetTypesChanged)
+    Q_PROPERTY(bool isCarrot READ isCarrot NOTIFY isCarrotChanged)
 
 public:
 
@@ -408,6 +409,7 @@ public:
 
     // new property getter
     QStringList assetTypes() const;
+    bool isCarrot() const;
   
     // TODO: setListenter() when it implemented in API
 signals:
@@ -454,6 +456,7 @@ signals:
     void refreshingChanged() const;
 
     void assetTypesChanged();
+    void isCarrotChanged();
   
 private:
     Wallet(QObject * parent = nullptr);
@@ -513,6 +516,7 @@ private:
     void setProxyAddress(QString address);
     void startRefreshThread();
     void updateAssetTypesCache(bool force = false);
+    void updateIsCarrotCache();
   
 private:
     friend class WalletManager;
@@ -557,6 +561,7 @@ private:
     FutureScheduler m_scheduler;
 
     QStringList m_assetTypes;
+    bool m_isCarrot = false;
 };
 
 

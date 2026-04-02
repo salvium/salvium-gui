@@ -182,11 +182,9 @@ Rectangle {
                 pageRoot.enabled = true;
                 root.warningContent = "";
 
-                if (currentWallet.useForkRules(8, 0) && !currentWallet.useForkRules(9, 0)) {
-                    auditButton.enabled = true;
-                } else {
-                    auditButton.enabled = false;
-                }
+                var isAuditHF = (currentWallet.useForkRules(6, 0) && !currentWallet.useForkRules(7, 0))
+                             || (currentWallet.useForkRules(8, 0) && !currentWallet.useForkRules(9, 0));
+                auditButton.enabled = isAuditHF;
             }
         }
     }

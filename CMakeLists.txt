@@ -4,7 +4,7 @@ project(salvium-gui)
 message(STATUS "Initiating compile using CMake ${CMAKE_VERSION}")
 
 set(VERSION_MAJOR "1")
-set(VERSION_MINOR "0")
+set(VERSION_MINOR "1")
 set(VERSION_REVISION "a")
 set(VERSION "1.${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}")
 
