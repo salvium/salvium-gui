@@ -170,6 +170,17 @@ jobs:
           make -j$(sysctl -n hw.ncpu)
           make deploy
 
+      - name: Verify macOS bundle dylib paths
+        if: success()
+        run: |
+          BIN_PATH="build/release/bin/salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui"
+          llvm-objdump --macho --dylibs-used "$BIN_PATH"
+
+          if llvm-objdump --macho --dylibs-used "$BIN_PATH" | grep -q '/opt/homebrew/'; then
+            echo "Error: Non-portable Homebrew dylib paths are still present in app bundle."
+            exit 1
+          fi
+
       - name: Upload GUI App Artifact (for next job)
         uses: actions/upload-artifact@v4
         with:
