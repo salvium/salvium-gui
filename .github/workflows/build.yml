@@ -57,9 +57,16 @@ jobs:
         if: success()
         run: |
           BIN_PATH="build/release/bin/salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui"
-          llvm-objdump --macho --dylibs-used "$BIN_PATH"
+          if xcrun --find llvm-objdump >/dev/null 2>&1; then
+            DYLIBS_OUTPUT="$(xcrun llvm-objdump --macho --dylibs-used "$BIN_PATH")"
+          elif command -v llvm-objdump >/dev/null 2>&1; then
+            DYLIBS_OUTPUT="$(llvm-objdump --macho --dylibs-used "$BIN_PATH")"
+          else
+            DYLIBS_OUTPUT="$(otool -L "$BIN_PATH")"
+          fi
 
-          if llvm-objdump --macho --dylibs-used "$BIN_PATH" | grep -q '/opt/homebrew/'; then
+          echo "$DYLIBS_OUTPUT"
+          if echo "$DYLIBS_OUTPUT" | grep -q '/opt/homebrew/'; then
             echo "Error: Non-portable Homebrew dylib paths are still present in app bundle."
             exit 1
           fi
