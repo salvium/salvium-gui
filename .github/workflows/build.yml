@@ -23,13 +23,23 @@ jobs:
 
       - name: Install dependencies (Homebrew)
         run: |
-          brew install qt@5 boost@1.85 openssl@1.1 libsodium pkg-config cmake zeromq \
+          brew install qt@5 boost openssl@3 libsodium pkg-config cmake zeromq \
                        hidapi libpgm miniupnpc expat libunwind-headers protobuf ccache
+          pip3 install macholib
 
       - name: Set up build environment paths
         run: |
-          echo "CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5:/opt/homebrew/opt/openssl@1.1:/opt/homebrew/opt/boost@1.85:/opt/homebrew/opt/libsodium:/opt/homebrew/opt/miniupnpc:/opt/homebrew/opt/protobuf" >> $GITHUB_ENV
-          echo "/opt/homebrew/opt/qt@5/bin" >> $GITHUB_PATH
+          QT5_PREFIX=$(brew --prefix qt@5)
+          OPENSSL_PREFIX=$(brew --prefix openssl@3)
+          BOOST_PREFIX=$(brew --prefix boost)
+          SODIUM_PREFIX=$(brew --prefix libsodium)
+          MINIUPNPC_PREFIX=$(brew --prefix miniupnpc)
+          PROTOBUF_PREFIX=$(brew --prefix protobuf)
+          echo "QT5_PREFIX=${QT5_PREFIX}" >> $GITHUB_ENV
+          echo "OPENSSL_PREFIX=${OPENSSL_PREFIX}" >> $GITHUB_ENV
+          echo "BOOST_PREFIX=${BOOST_PREFIX}" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=${QT5_PREFIX}:${OPENSSL_PREFIX}:${BOOST_PREFIX}:${SODIUM_PREFIX}:${MINIUPNPC_PREFIX}:${PROTOBUF_PREFIX}" >> $GITHUB_ENV
+          echo "${QT5_PREFIX}/bin" >> $GITHUB_PATH
 
       - name: Configure CMake
         run: |
@@ -39,10 +49,10 @@ jobs:
                 -D DEV_MODE=OFF \
                 -D MANUAL_SUBMODULES=OFF \
                 -D CMAKE_POLICY_DEFAULT_CMP0074=NEW \
-                -D Boost_INCLUDE_DIR=/opt/homebrew/opt/boost@1.85/include \
-                -D Boost_LIBRARY_DIR=/opt/homebrew/opt/boost@1.85/lib \
-                -D CMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/opt/openssl@1.1/lib" \
-                -D CMAKE_CXX_FLAGS="-I/opt/homebrew/opt/boost@1.85/include" \
+                -D Boost_INCLUDE_DIR="${BOOST_PREFIX}/include" \
+                -D Boost_LIBRARY_DIR="${BOOST_PREFIX}/lib" \
+                -D CMAKE_EXE_LINKER_FLAGS="-L${OPENSSL_PREFIX}/lib" \
+                -D CMAKE_CXX_FLAGS="-I${BOOST_PREFIX}/include" \
                 ../..
         env:
            CMAKE_PREFIX_PATH: ${{ env.CMAKE_PREFIX_PATH }}
@@ -51,6 +61,12 @@ jobs:
         run: |
           cd build/release
           make -j$(sysctl -n hw.ncpu)
+
+      - name: Deploy (bundle Qt frameworks into .app)
+        if: success()
+        run: |
+          cd build/release
+          make deploy
 
       - name: Test QML
         if: success()

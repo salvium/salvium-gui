@@ -1070,8 +1070,7 @@ Rectangle {
                 "isComplete": (_model[i].blockheight <= maturedHeight),
                 "burnt": _model[i].burnt,
                 "yield": _model[i].yield,
-                "hash": _model[i].hash,
-                "asset_type" : _model[1].asset_type
+                "hash": _model[i].hash
             });
         }
 
