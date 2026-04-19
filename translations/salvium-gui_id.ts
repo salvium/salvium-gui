@@ -1160,8 +1160,8 @@ Penambangan juga memberi Anda peluang kecil untuk mendapatkan SAL. Komputer Anda
         <location filename="pages/Mining.qml" line="335"/>
         <location filename="pages/Mining.qml" line="624"/>
         <location filename="pages/Mining.qml" line="641"/>
-        <source>Couldn't start mining.&amp;lt;br&amp;gt;</source>
-        <translation>Tidak dapat memulai penambangan.&amp;lt;br&amp;gt;</translation>
+        <source>Couldn't start mining.&lt;br&gt;</source>
+        <translation>Tidak dapat memulai penambangan.&lt;br&gt;</translation>
     </message>
     <message>
         <location filename="pages/Mining.qml" line="345"/>
@@ -1241,8 +1241,8 @@ Penambangan juga memberi Anda peluang kecil untuk mendapatkan SAL. Komputer Anda
     </message>
     <message>
         <location filename="pages/Mining.qml" line="571"/>
-        <source>Mining is only available on local daemons. Run a local daemon to be able to mine.&amp;lt;br&amp;gt;</source>
-        <translation>Penambangan hanya tersedia di daemon lokal. Jalankan daemon lokal untuk dapat menambang.&amp;lt;br&amp;gt;</translation>
+        <source>Mining is only available on local daemons. Run a local daemon to be able to mine.&lt;br&gt;</source>
+        <translation>Penambangan hanya tersedia di daemon lokal. Jalankan daemon lokal untuk dapat menambang.&lt;br&gt;</translation>
     </message>
     <message>
         <location filename="pages/Mining.qml" line="647"/>
@@ -1468,12 +1468,12 @@ Penambangan juga memberi Anda peluang kecil untuk mendapatkan SAL. Komputer Anda
 
 In addition, make sure to not save your wallet on the filesystem, as it will be lost at shutdown.
 
-To enable Tails persistence, setup an encrypted volume and restart Tails. To gain a startup menu item, enable the Tails &amp;quot;dotfiles&amp;quot; feature.</source>
+To enable Tails persistence, setup an encrypted volume and restart Tails. To gain a startup menu item, enable the Tails &quot;dotfiles&quot; feature.</source>
         <translation>Monero GUI telah mendeteksi bahwa persistensi Tails saat ini dinonaktifkan. Konfigurasi apa pun yang Anda buat di dalam Monero GUI tidak akan disimpan.
 
 Selain itu, pastikan untuk tidak menyimpan dompet Anda di sistem file, karena akan hilang saat shutdown.
 
-Untuk mengaktifkan persistensi Tails, siapkan volume terenkripsi dan restart Tails. Untuk mendapatkan item menu startup, aktifkan fitur &amp;quot;dotfiles&amp;quot; Tails.</translation>
+Untuk mengaktifkan persistensi Tails, siapkan volume terenkripsi dan restart Tails. Untuk mendapatkan item menu startup, aktifkan fitur &quot;dotfiles&quot; Tails.</translation>
     </message>
     <message>
         <location filename="src/qt/TailsOS.cpp" line="65"/>
@@ -2233,7 +2233,7 @@ File cache dompet lama akan diganti namanya dan dapat dipulihkan nanti.
     </message>
     <message>
         <location filename="pages/settings/SettingsWallet.qml" line="80"/>
-        <source>The view only wallet has been created with the same password as the current wallet. You can open it by closing this current wallet, clicking the &amp;quot;Open wallet from file&amp;quot; option, and selecting the view wallet in: 
+        <source>The view only wallet has been created with the same password as the current wallet. You can open it by closing this current wallet, clicking the &quot;Open wallet from file&quot; option, and selecting the view wallet in: 
 %1
 You can change the password in the wallet settings.</source>
         <translation>Dompet hanya-lihat telah dibuat dengan kata sandi yang sama dengan dompet saat ini. Anda dapat membukanya dengan menutup dompet ini, mengeklik opsi &quot;Buka dompet dari file&quot;, dan memilih dompet lihat di: 
@@ -2276,7 +2276,7 @@ Anda dapat mengubah kata sandi di pengaturan dompet.</translation>
     </message>
     <message>
         <location filename="pages/settings/SettingsWallet.qml" line="113"/>
-        <source>Rescan spent can only be used with a trusted remote node. If you trust the current node you are connected to (%1), you can mark it as trusted in Settings &amp;gt; Node page.</source>
+        <source>Rescan spent can only be used with a trusted remote node. If you trust the current node you are connected to (%1), you can mark it as trusted in Settings &gt; Node page.</source>
         <translation>Pemindaian ulang yang dibelanjakan hanya dapat digunakan dengan node jarak jauh tepercaya. Jika Anda mempercayai node saat ini yang terhubung dengan Anda (%1), Anda dapat menandainya sebagai tepercaya di Pengaturan &gt; Halaman Node.</translation>
     </message>
     <message>
@@ -2313,7 +2313,7 @@ Anda dapat mengubah kata sandi di pengaturan dompet.</translation>
         <location filename="pages/settings/SettingsWallet.qml" line="147"/>
         <source>The wallet has already seen 1 or more recent transactions than the scanned transaction.
 
-In order to rescan the transaction, you can re-sync your wallet by resetting the wallet restore height in the Settings &amp;gt; Info page. Make sure to use a restore height from before your wallet's earliest transaction.</source>
+In order to rescan the transaction, you can re-sync your wallet by resetting the wallet restore height in the Settings &gt; Info page. Make sure to use a restore height from before your wallet's earliest transaction.</source>
         <translation>Dompet telah melihat 1 atau lebih transaksi terkini daripada transaksi yang dipindai.
 
 Untuk memindai ulang transaksi, Anda dapat menyinkronkan ulang dompet Anda dengan mengatur ulang tinggi pemulihan dompet di Pengaturan &gt; Halaman Info. Pastikan untuk menggunakan tinggi pemulihan dari sebelum transaksi paling awal dompet Anda.</translation>
@@ -2372,8 +2372,8 @@ Jika Anda ingin fitur ini diterapkan, silakan hubungi tim.</translation>
     </message>
     <message>
         <location filename="pages/SharedRingDB.qml" line="108"/>
-        <source>In order to avoid nullifying the protection afforded by Salvium's ring signatures, an output should not be spent with different rings on different blockchains. While this is normally not a concern, it can become one when a key-reusing Salvium clone allows you to spend existing outputs. In this case, you need to ensure this existing outputs uses the same ring on both chains.&amp;lt;br&amp;gt;This will be done automatically by Salvium and any key-reusing software which is not trying to actively strip you of your privacy.&amp;lt;br&amp;gt;If you are using a key-reusing Salvium clone too, and this clone does not include this protection, you can still ensure your transactions are protected by spending on the clone first, then manually adding the ring on this page, which allows you to then spend your Salvium safely.&amp;lt;br&amp;gt;If you do not use a key-reusing Salvium clone without these safety features, then you do not need to do anything as it is all automated.&amp;lt;br&amp;gt;</source>
-        <translation>Untuk menghindari pembatalan perlindungan yang diberikan oleh tanda tangan cincin Salvium, sebuah output tidak boleh dibelanjakan dengan cincin yang berbeda di blockchain yang berbeda. Meskipun ini biasanya tidak menjadi masalah, ini bisa menjadi masalah ketika klon Salvium yang menggunakan kembali kunci memungkinkan Anda untuk membelanjakan output yang ada. Dalam hal ini, Anda perlu memastikan output yang ada ini menggunakan cincin yang sama di kedua rantai.&amp;lt;br&gt;Ini akan dilakukan secara otomatis oleh Salvium dan perangkat lunak apa pun yang menggunakan kembali kunci yang tidak secara aktif mencoba merampas privasi Anda.&amp;lt;br&gt;Jika Anda juga menggunakan klon Salvium yang menggunakan kembali kunci, dan klon ini tidak menyertakan perlindungan ini, Anda masih dapat memastikan transaksi Anda dilindungi dengan membelanjakan pada klon terlebih dahulu, lalu secara manual menambahkan cincin di halaman ini, yang memungkinkan Anda untuk kemudian membelanjakan Salvium Anda dengan aman.&amp;lt;br&gt;Jika Anda tidak menggunakan klon Salvium yang menggunakan kembali kunci tanpa fitur keamanan ini, maka Anda tidak perlu melakukan apa-apa karena semuanya otomatis.&amp;lt;br&gt;</translation>
+        <source>In order to avoid nullifying the protection afforded by Salvium's ring signatures, an output should not be spent with different rings on different blockchains. While this is normally not a concern, it can become one when a key-reusing Salvium clone allows you to spend existing outputs. In this case, you need to ensure this existing outputs uses the same ring on both chains.&lt;br&gt;This will be done automatically by Salvium and any key-reusing software which is not trying to actively strip you of your privacy.&lt;br&gt;If you are using a key-reusing Salvium clone too, and this clone does not include this protection, you can still ensure your transactions are protected by spending on the clone first, then manually adding the ring on this page, which allows you to then spend your Salvium safely.&lt;br&gt;If you do not use a key-reusing Salvium clone without these safety features, then you do not need to do anything as it is all automated.&lt;br&gt;</source>
+        <translation>Untuk menghindari pembatalan perlindungan yang diberikan oleh tanda tangan cincin Salvium, sebuah output tidak boleh dibelanjakan dengan cincin yang berbeda di blockchain yang berbeda. Meskipun ini biasanya tidak menjadi masalah, ini bisa menjadi masalah ketika klon Salvium yang menggunakan kembali kunci memungkinkan Anda untuk membelanjakan output yang ada. Dalam hal ini, Anda perlu memastikan output yang ada ini menggunakan cincin yang sama di kedua rantai.&lt;br&gt;Ini akan dilakukan secara otomatis oleh Salvium dan perangkat lunak apa pun yang menggunakan kembali kunci yang tidak secara aktif mencoba merampas privasi Anda.&lt;br&gt;Jika Anda juga menggunakan klon Salvium yang menggunakan kembali kunci, dan klon ini tidak menyertakan perlindungan ini, Anda masih dapat memastikan transaksi Anda dilindungi dengan membelanjakan pada klon terlebih dahulu, lalu secara manual menambahkan cincin di halaman ini, yang memungkinkan Anda untuk kemudian membelanjakan Salvium Anda dengan aman.&lt;br&gt;Jika Anda tidak menggunakan klon Salvium yang menggunakan kembali kunci tanpa fitur keamanan ini, maka Anda tidak perlu melakukan apa-apa karena semuanya otomatis.&lt;br&gt;</translation>
     </message>
     <message>
         <location filename="pages/SharedRingDB.qml" line="127"/>
@@ -3771,8 +3771,8 @@ masukan Anda mungkin diperlukan.</translation>
     </message>
     <message>
         <location filename="wizard/WizardCreateWallet2.qml" line="92"/>
-        <source>For instructions on how to restore this wallet, visit www.salvium.io and go to Resources &amp;gt; User Guides &amp;gt; &amp;quot;How to restore a wallet from mnemonic seed&amp;quot;. Use only Salvium wallets that are trusted and recommended by the Salvium community (see a list of them in www.salvium.io/downloads).</source>
-        <translation>Untuk instruksi tentang cara memulihkan dompet ini, kunjungi www.salvium.io dan buka Sumber Daya &amp;gt; Panduan Pengguna &amp;gt; &amp;quot;Cara memulihkan dompet dari benih mnemonik&amp;quot;. Gunakan hanya dompet Salvium yang dipercaya dan direkomendasikan oleh komunitas Salvium (lihat daftarnya di www.salvium.io/downloads).</translation>
+        <source>For instructions on how to restore this wallet, visit www.salvium.io and go to Resources &gt; User Guides &gt; &quot;How to restore a wallet from mnemonic seed&quot;. Use only Salvium wallets that are trusted and recommended by the Salvium community (see a list of them in www.salvium.io/downloads).</source>
+        <translation>Untuk instruksi tentang cara memulihkan dompet ini, kunjungi www.salvium.io dan buka Sumber Daya &gt; Panduan Pengguna &gt; &quot;Cara memulihkan dompet dari benih mnemonik&quot;. Gunakan hanya dompet Salvium yang dipercaya dan direkomendasikan oleh komunitas Salvium (lihat daftarnya di www.salvium.io/downloads).</translation>
     </message>
     <message>
         <location filename="wizard/WizardCreateWallet2.qml" line="117"/>
@@ -4052,13 +4052,13 @@ masukan Anda mungkin diperlukan.</translation>
     </message>
     <message>
         <location filename="wizard/WizardModeBootstrap.qml" line="84"/>
-        <source>Temporary use of remote nodes is useful in order to use Salvium immediately (hence the name bootstrap), however be aware that when using remote nodes (including with the bootstrap setting), nodes could track your IP address, track your &amp;quot;restore height&amp;quot; and associated block request data, and send you inaccurate information to learn more about transactions you make.</source>
-        <translation>Penggunaan sementara node jarak jauh berguna untuk segera menggunakan Salvium (karena itu disebut bootstrap), namun perlu diketahui bahwa saat menggunakan node jarak jauh (termasuk dengan pengaturan bootstrap), node dapat melacak alamat IP Anda, melacak &amp;quot;ketinggian pemulihan&amp;quot; Anda dan data permintaan blok terkait, dan mengirimi Anda informasi yang tidak akurat untuk mempelajari lebih lanjut tentang transaksi yang Anda lakukan.</translation>
+        <source>Temporary use of remote nodes is useful in order to use Salvium immediately (hence the name bootstrap), however be aware that when using remote nodes (including with the bootstrap setting), nodes could track your IP address, track your &quot;restore height&quot; and associated block request data, and send you inaccurate information to learn more about transactions you make.</source>
+        <translation>Penggunaan sementara node jarak jauh berguna untuk segera menggunakan Salvium (karena itu disebut bootstrap), namun perlu diketahui bahwa saat menggunakan node jarak jauh (termasuk dengan pengaturan bootstrap), node dapat melacak alamat IP Anda, melacak &quot;ketinggian pemulihan&quot; Anda dan data permintaan blok terkait, dan mengirimi Anda informasi yang tidak akurat untuk mempelajari lebih lanjut tentang transaksi yang Anda lakukan.</translation>
     </message>
     <message>
         <location filename="wizard/WizardModeBootstrap.qml" line="97"/>
-        <source>Remain aware of these limitations. &amp;lt;b&amp;gt;Users who prioritize privacy and decentralization must use a full node instead&amp;lt;/b&amp;gt;.</source>
-        <translation>Tetap waspadai keterbatasan ini. &amp;lt;b&amp;gt;Pengguna yang memprioritaskan privasi dan desentralisasi harus menggunakan node penuh&amp;lt;/b&amp;gt;.</translation>
+        <source>Remain aware of these limitations. &lt;b&gt;Users who prioritize privacy and decentralization must use a full node instead&lt;/b&gt;.</source>
+        <translation>Tetap waspadai keterbatasan ini. &lt;b&gt;Pengguna yang memprioritaskan privasi dan desentralisasi harus menggunakan node penuh&lt;/b&gt;.</translation>
     </message>
     <message>
         <location filename="wizard/WizardModeBootstrap.qml" line="104"/>
@@ -4080,13 +4080,13 @@ masukan Anda mungkin diperlukan.</translation>
     </message>
     <message>
         <location filename="wizard/WizardModeRemoteNodeWarning.qml" line="85"/>
-        <source>Remote nodes are useful if you are not able/don't want to download the whole blockchain, but be advised that malicious remote nodes could compromise some privacy. They could track your IP address, track your &amp;quot;restore height&amp;quot; and associated block request data, and send you inaccurate information to learn more about transactions you make.</source>
-        <translation>Node jarak jauh berguna jika Anda tidak dapat/tidak ingin mengunduh seluruh blockchain, tetapi perlu diketahui bahwa node jarak jauh yang jahat dapat membahayakan privasi. Node tersebut dapat melacak alamat IP Anda, melacak &amp;quot;ketinggian pemulihan&amp;quot; Anda dan data permintaan blok terkait, dan mengirimi Anda informasi yang tidak akurat untuk mempelajari lebih lanjut tentang transaksi yang Anda lakukan.</translation>
+        <source>Remote nodes are useful if you are not able/don't want to download the whole blockchain, but be advised that malicious remote nodes could compromise some privacy. They could track your IP address, track your &quot;restore height&quot; and associated block request data, and send you inaccurate information to learn more about transactions you make.</source>
+        <translation>Node jarak jauh berguna jika Anda tidak dapat/tidak ingin mengunduh seluruh blockchain, tetapi perlu diketahui bahwa node jarak jauh yang jahat dapat membahayakan privasi. Node tersebut dapat melacak alamat IP Anda, melacak &quot;ketinggian pemulihan&quot; Anda dan data permintaan blok terkait, dan mengirimi Anda informasi yang tidak akurat untuk mempelajari lebih lanjut tentang transaksi yang Anda lakukan.</translation>
     </message>
     <message>
         <location filename="wizard/WizardModeRemoteNodeWarning.qml" line="100"/>
-        <source>Remain aware of these limitations. &amp;lt;b&amp;gt;Users who prioritize privacy and decentralization must use a full node instead&amp;lt;/b&amp;gt;.</source>
-        <translation>Tetap waspadai keterbatasan ini. &amp;lt;b&amp;gt;Pengguna yang memprioritaskan privasi dan desentralisasi harus menggunakan node penuh&amp;lt;/b&amp;gt;.</translation>
+        <source>Remain aware of these limitations. &lt;b&gt;Users who prioritize privacy and decentralization must use a full node instead&lt;/b&gt;.</source>
+        <translation>Tetap waspadai keterbatasan ini. &lt;b&gt;Pengguna yang memprioritaskan privasi dan desentralisasi harus menggunakan node penuh&lt;/b&gt;.</translation>
     </message>
     <message>
         <location filename="wizard/WizardModeRemoteNodeWarning.qml" line="107"/>
@@ -4658,8 +4658,8 @@ Jika Anda tidak memiliki pilihan untuk menjalankan node Anda sendiri, ada opsi u
     <name>YieldInfo</name>
     <message>
         <location filename="src/libwalletqt/YieldInfo.cpp" line="89"/>
-        <source>{&amp;quot;blockheight&amp;quot;:%1,&amp;quot;hash&amp;quot;:&amp;quot;%2&amp;quot;,&amp;quot;burnt&amp;quot;:%3,&amp;quot;yield&amp;quot;:%4}</source>
-        <translation>{&amp;quot;ketinggian blok&amp;quot;:%1,&amp;quot;hash&amp;quot;:&amp;quot;%2&amp;quot;,&amp;quot;dibakar&amp;quot;:%3,&amp;quot;hasil&amp;quot;:%4}</translation>
+        <source>{&quot;blockheight&quot;:%1,&quot;hash&quot;:&quot;%2&quot;,&quot;burnt&quot;:%3,&quot;yield&quot;:%4}</source>
+        <translation>{&quot;ketinggian blok&quot;:%1,&quot;hash&quot;:&quot;%2&quot;,&quot;dibakar&quot;:%3,&quot;hasil&quot;:%4}</translation>
     </message>
 </context>
 <context>
