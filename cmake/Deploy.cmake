@@ -71,6 +71,13 @@ if(APPLE OR (WIN32 AND NOT STATIC))
                    COMMENT "Running fix_qt_paths.py script..."
         )
 
+        # Fix absolute Homebrew library paths (copy into Frameworks, rewrite references)
+        add_custom_command(TARGET deploy
+                   POST_BUILD
+                   COMMAND bash "${CMAKE_SOURCE_DIR}/share/fix_homebrew_paths.sh" "${CMAKE_BINARY_DIR}/bin/salvium-wallet-gui.app"
+                   COMMENT "Running fix_homebrew_paths.sh to relocate non-system dylibs..."
+        )
+
         # Apple Silicon requires all binaries to be codesigned
         find_program(CODESIGN_EXECUTABLE NAMES codesign)
         if(CODESIGN_EXECUTABLE)

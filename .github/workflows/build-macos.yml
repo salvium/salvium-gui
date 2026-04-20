@@ -18,7 +18,8 @@ jobs:
       - name: Install dependencies (Homebrew)
         run: |
           brew install qt@5 boost@1.85 openssl@1.1 libsodium pkg-config cmake zeromq \
-                       hidapi libpgm miniupnpc expat libunwind-headers protobuf ccache
+                       hidapi libpgm miniupnpc expat libunwind-headers protobuf ccache unbound libgcrypt
+          pip3 install macholib
 
       - name: Set up build environment paths
         run: |
@@ -52,6 +53,7 @@ jobs:
           # Now run make in the configured build directory
           cd build/release
           make -j$(sysctl -n hw.ncpu)
+          make deploy
 
       - name: Create unsigned .dmg
         if: success()

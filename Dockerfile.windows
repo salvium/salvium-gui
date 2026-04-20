@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:22.04
 
 ARG THREADS=1
 ARG QT_VERSION=v5.15.17-lts-lgpl

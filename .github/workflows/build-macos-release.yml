@@ -170,11 +170,15 @@ jobs:
           make -j$(sysctl -n hw.ncpu)
           make deploy
 
+      # macOS frameworks rely on symlinks (e.g. QtCore.framework/QtCore → Versions/5/QtCore). 
+      - name: Tar App Bundle (preserves symlinks)
+        run: tar -cf build/release/bin/salvium-wallet-gui.app.tar -C build/release/bin salvium-wallet-gui.app
+
       - name: Upload GUI App Artifact (for next job)
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-bundle-local
-          path: build/release/bin/salvium-wallet-gui.app
+          path: build/release/bin/salvium-wallet-gui.app.tar
           retention-days: 1
 
   bundle-macos-release:
@@ -193,7 +197,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: macos-app-bundle-local
-          path: ./salvium-wallet-gui.app
+          path: ./app-tar
+
+      # Restore the .app with all symlinks intact
+      - name: Untar App Bundle (restores symlinks)
+        run: tar -xf ./app-tar/salvium-wallet-gui.app.tar -C .
 
       - name: Replace Daemon with Static Version
         run: |
@@ -205,6 +213,19 @@ jobs:
           chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui
           chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salviumd
           echo "Execute permissions set on GUI binary."
+
+      - name: Check out code (for fix script)
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Fix Homebrew dylib paths
+        run: |
+          bash ./src/share/fix_homebrew_paths.sh ./salvium-wallet-gui.app
+
+      - name: Ad-hoc codesign the bundle
+        run: |
+          codesign --force --deep --sign - ./salvium-wallet-gui.app
 
       - name: Create unsigned .dmg
         run: |

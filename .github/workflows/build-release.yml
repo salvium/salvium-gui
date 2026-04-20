@@ -153,11 +153,15 @@ jobs:
           cd build/release/bin
           ./salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui --test-qml
 
+      # macOS frameworks rely on symlinks but actions/upload-artifact@v4 destroys them, so we tar first to preserve them.
+      - name: Tar App Bundle (preserves symlinks)
+        run: tar -cf build/release/bin/salvium-wallet-gui.app.tar -C build/release/bin salvium-wallet-gui.app
+
       - name: Upload GUI App Artifact (for next job)
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-bundle-local
-          path: build/release/bin/salvium-wallet-gui.app
+          path: build/release/bin/salvium-wallet-gui.app.tar
           retention-days: 1
 
   bundle-macos-release:
@@ -176,18 +180,29 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: macos-app-bundle-local
-          path: ./salvium-wallet-gui.app
+          path: ./app-tar
+      # Restore the .app with all symlinks intact
+      - name: Untar App Bundle (restores symlinks)
+        run: tar -xf ./app-tar/salvium-wallet-gui.app.tar -C .
 
       - name: Replace Daemon with Static Version
         run: |
+          echo "Overwriting non-portable daemon with static version..."
           cp ./static-daemon/salviumd ./salvium-wallet-gui.app/Contents/MacOS/salviumd
+          echo "Daemon replaced."
 
       - name: Ensure GUI Executable has Execute Permissions
         run: |
           chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salvium-wallet-gui
           chmod +x ./salvium-wallet-gui.app/Contents/MacOS/salviumd
+          echo "Execute permissions set on GUI binary."
 
-      - name: Create unsigned .dmg
+      - name: Ad-hoc codesign the bundle
+        run: |
+          codesign --force --deep --sign - ./salvium-wallet-gui.app
+          codesign -vvv ./salvium-wallet-gui.app
+
+      - name: Create .dmg
         run: |
           hdiutil create -fs HFS+ -srcfolder ./salvium-wallet-gui.app -volname "salvium-gui" salvium-gui-unsigned.dmg
 
